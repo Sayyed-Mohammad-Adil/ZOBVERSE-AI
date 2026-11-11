@@ -1,0 +1,34 @@
+# Local environment and credentials
+.env*
+**/.env*
+*.pem
+
+# Dependencies and virtual environments
+node_modules/
+venv/
+.venv/
+quick-venv/
+__pycache__/
+
+# Build and test artifacts
+.next/
+**/.next/
+out/
+build/
+coverage/
+.pytest_cache/
+**/.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.py[cod]
+*.tsbuildinfo
+
+# Local application data and nested repository metadata
+backend/storage/
+**/.git/
+
+# Local tooling and OS files
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json

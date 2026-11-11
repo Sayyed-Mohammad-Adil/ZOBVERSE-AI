@@ -1,0 +1,14 @@
+{
+  "name": "ai-job-agent-root",
+  "version": "1.0.0",
+  "description": "Root package for Auto Job Applier",
+  "scripts": {
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && uvicorn app.main:app --reload",
+    "install:all": "cd frontend && npm install && cd ../backend && python -m venv venv && ./venv/bin/pip install -r requirements.txt",
+    "start": "docker-compose up -d"
+  },
+  "dependencies": {
+    "all": "^0.0.0"
+  }
+}

@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/job_agent
+      - OLLAMA_URL=http://ollama:11434
+      - DEFAULT_LLM_MODEL=llama3
+      - DEFAULT_EMBEDDING_MODEL=nomic-embed-text
+      - JWT_SECRET=${JWT_SECRET:-dev_secret}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-super_secret_encryption_key_please_change}
+      - STORAGE_PATH=/data/storage
+      - LAYA_ENABLED=true
+      - LAYA_MODEL=default
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USERNAME=${SMTP_USERNAME:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SMTP_FROM_EMAIL=${SMTP_FROM_EMAIL:-}
+      - SMTP_STARTTLS=${SMTP_STARTTLS:-true}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - app_storage:/data/storage
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: ./backend
+    command: python -m app.workers.main
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/job_agent
+      - OLLAMA_URL=http://ollama:11434
+      - DEFAULT_LLM_MODEL=llama3
+      - DEFAULT_EMBEDDING_MODEL=nomic-embed-text
+      - JWT_SECRET=${JWT_SECRET:-dev_secret}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-super_secret_encryption_key_please_change}
+      - STORAGE_PATH=/data/storage
+      - LAYA_ENABLED=true
+      - LAYA_MODEL=default
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - app_storage:/data/storage
+    restart: unless-stopped
+
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=job_agent
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d job_agent"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  ollama_data:
+  app_storage:

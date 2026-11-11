@@ -1,0 +1,12 @@
+venv/
+quick-venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+storage/
+.git
+.gitignore

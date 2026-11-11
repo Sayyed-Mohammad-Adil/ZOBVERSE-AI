@@ -1,0 +1,55 @@
+# REST API Specification
+
+The backend exposes a versioned REST API under `/api/v1`.
+
+## Endpoints Summary
+
+- **Authentication (`/api/v1/auth`)**:
+  - `POST /register`: Register new user.
+  - `POST /login`: OAuth2 password bearer token authentication.
+  - `GET /me`: Return authenticated user info.
+- **Candidate Profile (`/api/v1/profile`)**:
+  - `GET /{user_id}`: Fetch candidate details.
+  - `PUT /{user_id}`: Update profile, skills, and contact data.
+- **Resumes (`/api/v1/resumes`)**:
+  - `POST /profile/upload-file/{user_id}`: Upload and parse a candidate resume; response includes extraction and OCR availability status.
+  - `GET /user/{user_id}`: List all uploaded resumes.
+  - `PUT /{id}/default`: Designate primary default resume.
+  - `DELETE /{id}`: Delete resume.
+  - `GET /resumes/ocr/status`: Check whether the local OCR executable is available.
+  - Scanned PDFs use the local Light-OCR engine with the CPU provider when selectable-text extraction yields little or no text. PDF text extraction requires `pypdf` from `backend/requirements.txt`.
+- **Preferences (`/api/v1/preferences`)**:
+  - `GET /{user_id}`: Get salary, role, location, and automation preferences.
+  - `PUT /{user_id}`: Update search criteria and daily limits (`daily_application_limit` supports 1–500).
+- **Job Discovery & Search (`/api/v1/jobs`, `/api/v1/search`)**:
+  - `GET /`: Authenticated search of listings discovered for the signed-in candidate, with salary, location, skill, keyword, and minimum match-score filters. `limit` supports 1–500.
+  - Match percentages reflect candidate-skill coverage of extracted job skills; they are not artificially raised to a minimum score.
+  - `POST /scan`: Authenticated live discovery request; fetches provider results before responding and associates listings with the requesting account (the standalone worker is not required for this request). Omitted skills default to the candidate profile, and `source` can restrict discovery to `linkedin` or `jobicy`.
+  - LinkedIn discovery uses its public job listings. A saved LinkedIn account connection is used for application actions, not authenticated job search.
+  - Previously stored listings without an account association remain hidden until that candidate's scan discovers them.
+  - Search results, listing details, skill summaries, worker logs, and analytics are restricted to the authenticated account.
+- **Matching Engine (`/api/v1/matching`)**:
+  - `GET /{user_id}/{job_id}`: Explainable match score, breakdown, matched/missing skills, and concerns.
+- **Duplicate Detection (`/api/v1/duplicates`)**:
+  - `POST /check`: 5-tier duplicate check against canonical URLs, hashes, and previous applications.
+- **Applications (`/api/v1/applications`)**:
+  - `GET /{user_id}`: List user applications pipeline.
+  - `POST /prepare`: Auto-select CV, draft cover letter, create in `READY` state.
+  - `PUT /{app_id}`: Advance status state machine (`READY` → `APPLIED` → `INTERVIEW` → `OFFER` → `REJECTED`).
+  - `POST /import-csv`: Import historical applications to seed duplicate prevention.
+- **Interviews (`/api/v1/interviews`)**:
+  - `GET /{user_id}`, `POST /{user_id}`, `PUT /{id}`, `DELETE /{id}`: Track interview rounds, dates, notes, and feedback.
+- **Offers (`/api/v1/offers`)**:
+  - `GET /{user_id}`, `POST /{user_id}`, `PUT /{id}`, `DELETE /{id}`: Track offers, equity, and negotiation stages.
+- **Review Queue (`/api/v1/review`)**:
+  - `GET /{user_id}`: List items needing human decision.
+  - `POST /resolve`: Approve, edit, or skip review items.
+- **Question Bank (`/api/v1/questions`)**:
+  - `GET /{user_id}`, `POST /{user_id}`, `PUT /{id}`, `DELETE /{id}`: CRUD for saved screening questions.
+  - `POST /classify`: Laya classification and confidence estimation for screening questions.
+- **Analytics (`/api/v1/analytics`)**:
+  - `GET /{user_id}`: Pipeline metrics, source breakdown, and skill gap intelligence.
+- **Settings & Privacy (`/api/v1/settings`)**:
+  - `GET /ai/test-ollama`, `GET /ai/test-laya`: Connectivity health tests.
+  - `GET /sources`: Adapter capabilities and automation permissions.
+  - `GET /privacy/export/{user_id}`: Full GDPR JSON export of candidate data.
