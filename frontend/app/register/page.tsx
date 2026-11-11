@@ -24,7 +24,7 @@ export default function RegisterPage() {
   const router = useRouter();
 
   useEffect(() => {
-    document.title = "Create Account | Open Job";
+    document.title = "Create Account | ZOBVERSE AI";
   }, []);
 
   const [email, setEmail] = useState("");
@@ -118,7 +118,7 @@ export default function RegisterPage() {
       <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-30 mix-blend-screen">
         <Image
           src="/about-ai-core.jpg"
-          alt="Open Job AI Core"
+          alt="ZOBVERSE AI AI Core"
           fill
           priority
           className="object-cover object-center scale-105 animate-cyber-pulse"
@@ -195,7 +195,7 @@ export default function RegisterPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="candidate@openjob.ai"
+                    placeholder="candidate@example.com"
                     autoComplete="email"
                     className="w-full pl-10 pr-4 py-2.5 bg-slate-950/80 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all"
                   />

@@ -8,7 +8,7 @@ import { OpenCodeLogo } from "@/components/ui/OpenCodeLogo";
 export default function LuxuryLoader() {
   const [visible, setVisible] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [statusText, setStatusText] = useState("Booting Open Job Autonomous Engine...");
+  const [statusText, setStatusText] = useState("Booting ZOBVERSE AI Autonomous Engine...");
 
   const containerRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLDivElement>(null);
@@ -27,11 +27,11 @@ export default function LuxuryLoader() {
     setVisible(true);
 
     const steps = [
-      { pct: 15, text: "Booting Open Job Autonomous Engine..." },
+      { pct: 15, text: "Booting ZOBVERSE AI Autonomous Engine..." },
       { pct: 38, text: "Calibrating Light-OCR Offline Vision (PP-OCRv6)..." },
       { pct: 64, text: "Synchronizing Laya Decision Core & Truthfulness Rule 2..." },
       { pct: 88, text: "Connecting Telemetry, Pipeline Queues & Sockets..." },
-      { pct: 100, text: "Systems Initialized. Welcome to Open Job." },
+      { pct: 100, text: "Systems Initialized. Welcome to ZOBVERSE AI." },
     ];
 
     const ctx = gsap.context(() => {
@@ -190,7 +190,7 @@ export default function LuxuryLoader() {
         <div ref={textRef} className="space-y-2 mb-6">
           <div className="flex items-center justify-center gap-2">
             <h1 className="text-3xl font-black tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
-              Open Job
+              ZOBVERSE AI
             </h1>
             <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-gradient-to-r from-blue-500/20 to-indigo-500/20 text-cyan-300 border border-cyan-400/30">
               AI Core

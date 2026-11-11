@@ -14,10 +14,10 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | Open Job",
-    default: "Open Job — Autonomous AI Job Search & Application Engine",
+    template: "%s | ZOBVERSE AI",
+    default: "ZOBVERSE AI — Find. Apply. Get Hired.",
   },
-  description: "Open Job: Autonomous personal AI job search & application assistant. Explainable matching, zero fabrication, Light-OCR document vision, and human-in-the-loop application preparation.",
+  description: "ZOBVERSE AI — Find. Apply. Get Hired. AI-powered job discovery, explainable matching, and human-reviewed application preparation.",
   icons: {
     icon: "/Open-Code-logo.svg",
     shortcut: "/Open-Code-logo.svg",

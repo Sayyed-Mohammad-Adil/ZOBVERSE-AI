@@ -13,6 +13,7 @@ from app.models.interview import Interview
 from app.models.offer import Offer
 from app.models.user import User
 from app.models.user_job import UserJob
+from app.adapters.registry import JOB_PLATFORM_SOURCES
 from app.core.security import get_current_user
 from typing import Any, Dict, List
 from collections import Counter
@@ -35,7 +36,7 @@ async def get_dashboard_analytics(
         .join(UserJob, UserJob.job_id == Job.id)
         .where(
             UserJob.user_id == user_id,
-            func.lower(Job.source).in_(["linkedin", "jobicy"]),
+            func.lower(Job.source).in_(JOB_PLATFORM_SOURCES),
             func.substr(func.lower(Job.external_job_id), 1, 6) != "dummy_",
         )
     )
@@ -105,7 +106,7 @@ async def get_dashboard_analytics(
         .where(
             UserJob.user_id == user_id,
             Job.skills.isnot(None),
-            func.lower(Job.source).in_(["linkedin", "jobicy"]),
+            func.lower(Job.source).in_(JOB_PLATFORM_SOURCES),
             func.substr(func.lower(Job.external_job_id), 1, 6) != "dummy_",
         )
         .order_by(Job.discovered_at.desc())

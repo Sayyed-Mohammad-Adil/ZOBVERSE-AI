@@ -10,6 +10,8 @@ RUN npm ci
 COPY . .
 
 # Set production env for build
+ARG API_PROXY_URL=http://127.0.0.1:8000
+ENV API_PROXY_URL=${API_PROXY_URL}
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 

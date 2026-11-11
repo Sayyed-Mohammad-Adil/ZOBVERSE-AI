@@ -40,7 +40,7 @@ export default function ContactPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    document.title = "Contact & Community Support | Open Job";
+    document.title = "Contact & Community Support | ZOBVERSE AI";
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -63,7 +63,7 @@ export default function ContactPage() {
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <Image
             src="/bg-contact.jpg"
-            alt="Open Job Global Support & Mission Control"
+            alt="ZOBVERSE AI Global Support & Mission Control"
             fill
             priority
             className="object-cover object-center opacity-35 mix-blend-screen scale-105"
@@ -77,7 +77,7 @@ export default function ContactPage() {
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-tight">
             Connect With The <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400">
-              Open Job Maintainers
+              ZOBVERSE AI Maintainers
             </span>
           </h1>
 
@@ -131,7 +131,7 @@ export default function ContactPage() {
                     For enterprise integrations, security disclosures, or partnership inquiries.
                   </div>
                   <div className="text-[11px] font-mono text-cyan-300 pt-1">
-                    support@openjob.local / security@openjob.local
+                    Use the form below for ZOBVERSE AI support inquiries.
                   </div>
                 </div>
               </div>

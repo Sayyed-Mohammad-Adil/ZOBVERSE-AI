@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -24,8 +24,31 @@ import {
 } from "lucide-react";
 import { BrandLoader } from "@/components/ui/BrandLoader";
 
+interface ApplicationRecord {
+  id: number;
+  status: string;
+  job_title?: string | null;
+  job_company?: string | null;
+  job_location?: string | null;
+  job_source?: string | null;
+  job_application_url?: string | null;
+  created_at?: string;
+  applied_at?: string | null;
+  notes?: string | null;
+}
+
+function isApplicationRecord(value: unknown): value is ApplicationRecord {
+  if (typeof value !== "object" || value === null) return false;
+  const record = value as Record<string, unknown>;
+  return typeof record.id === "number" && typeof record.status === "string";
+}
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}
+
 export default function ApplicationsPage() {
-  const [applications, setApplications] = useState<any[]>([]);
+  const [applications, setApplications] = useState<ApplicationRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState("ALL");
@@ -34,43 +57,70 @@ export default function ApplicationsPage() {
   const [importStatus, setImportStatus] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    loadApplications();
+  const fetchApplications = useCallback(async (): Promise<ApplicationRecord[]> => {
+    const meRes = await fetchWithAuth("/auth/me");
+    if (!meRes.ok) throw new Error("Failed to load user");
+    const me = await meRes.json();
+    const res = await fetchWithAuth(`/applications/${me.id}`);
+    if (!res.ok) throw new Error("Failed to load applications.");
+    const data: unknown = await res.json();
+    return Array.isArray(data) ? data.filter(isApplicationRecord) : [];
   }, []);
 
-  const loadApplications = async () => {
+  useEffect(() => {
+    let active = true;
+    fetchApplications()
+      .then((data) => {
+        if (active) {
+          setError("");
+          setApplications(data);
+        }
+      })
+      .catch((err: unknown) => {
+        if (active) setError(getErrorMessage(err, "Failed to load applications."));
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [fetchApplications]);
+
+  const loadApplications = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
-      const meRes = await fetchWithAuth("/auth/me");
-      if (!meRes.ok) throw new Error("Failed to load user");
-      const me = await meRes.json();
-
-      const res = await fetchWithAuth(`/applications/${me.id}`);
-      if (res.ok) {
-        const data = await res.json();
-        setApplications(Array.isArray(data) ? data : []);
-      }
-    } catch (err: any) {
-      setError(err.message);
+      setApplications(await fetchApplications());
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Failed to load applications."));
     } finally {
       setLoading(false);
     }
-  };
+  }, [fetchApplications]);
 
   const handleStatusUpdate = async (appId: number, newStatus: string) => {
+    if (
+      newStatus === "APPLIED" &&
+      !window.confirm("Have you completed and confirmed submission on the official job platform?")
+    ) {
+      return;
+    }
     try {
       const res = await fetchWithAuth(`/applications/${appId}`, {
         method: "PUT",
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({
+          status: newStatus,
+          submission_confirmed: newStatus === "APPLIED",
+        }),
       });
       if (res.ok) {
         loadApplications();
       } else {
         throw new Error("Failed to update status");
       }
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err: unknown) {
+      alert(getErrorMessage(err, "Failed to update application status."));
     }
   };
 
@@ -111,8 +161,8 @@ export default function ApplicationsPage() {
         const err = await res.json();
         throw new Error(err.detail || "Failed to import CSV");
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Failed to import application history."));
       setImportStatus(null);
     } finally {
       setIsImporting(false);
@@ -170,7 +220,7 @@ export default function ApplicationsPage() {
     const matchesSearch =
       searchQuery === "" ||
       (app.job_title && app.job_title.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (app.company && app.company.toLowerCase().includes(searchQuery.toLowerCase()));
+      (app.job_company && app.job_company.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesFilter && matchesSearch;
   });
 
@@ -188,7 +238,7 @@ export default function ApplicationsPage() {
             </Badge>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Complete lifecycle tracking, automated submissions, and verified anti-duplicate history
+            Track each platform-specific application and confirm submission only after completing it on the official site.
           </p>
         </div>
 
@@ -312,12 +362,12 @@ export default function ApplicationsPage() {
                     </h2>
                     {getStatusBadge(app.status)}
                     <span className="text-[11px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md font-medium">
-                      Source: {app.source || "Auto-Agent"}
+                      Source: {app.job_source || "Not recorded"}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-2 text-xs text-slate-600 font-medium">
-                    <span className="font-bold text-slate-800">{app.company}</span>
+                    <span className="font-bold text-slate-800">{app.job_company}</span>
                     <span>•</span>
                     <span className="text-slate-500">
                       Applied: {app.applied_at ? new Date(app.applied_at).toLocaleDateString() : "Pending"}
@@ -340,13 +390,13 @@ export default function ApplicationsPage() {
                     <option value="SKIPPED">Skipped</option>
                   </select>
 
-                  {app.url && (
+                  {app.job_application_url && (
                     <a
-                      href={app.url}
+                      href={app.job_application_url}
                       target="_blank"
                       rel="noreferrer"
                       className="p-2 text-slate-400 hover:text-blue-600 hover:bg-slate-100 rounded-lg transition-colors"
-                      title="View Job Link"
+                      title="Open official job/application page"
                     >
                       <ExternalLink className="w-4 h-4" />
                     </a>

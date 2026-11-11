@@ -75,7 +75,7 @@ export function BrandLoader({
             <span>{label}</span>
           </div>
           <span className="text-[10px] text-slate-500 font-mono uppercase tracking-widest mt-0.5">
-            Open Job Neural Core
+            ZOBVERSE AI Neural Core
           </span>
         </div>
       )}

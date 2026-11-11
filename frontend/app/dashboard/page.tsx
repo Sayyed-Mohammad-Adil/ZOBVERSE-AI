@@ -80,7 +80,7 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    document.title = "Command Center | Open Job";
+    document.title = "Command Center | ZOBVERSE AI";
     void Promise.resolve().then(loadDashboardData);
   }, []);
 
@@ -177,13 +177,13 @@ export default function DashboardPage() {
               <Badge variant="purple" size="sm">
                 Candidate Workspace
               </Badge>
-              <span className="text-xs text-slate-400 font-mono">Open Job v2.0</span>
+              <span className="text-xs text-slate-400 font-mono">ZOBVERSE AI v2.0</span>
             </div>
             <h1 className="text-3xl lg:text-4xl font-black text-white tracking-tight">
-              Open Job Autonomous Engine
+              ZOBVERSE AI Autonomous Engine
             </h1>
             <p className="text-sm text-slate-300 max-w-2xl leading-relaxed">
-              Multi-source discovery, deterministic skill matching, Light-OCR vision, and truthful submissions with strictly zero candidate fabrication.
+              Multi-platform discovery, deterministic skill matching, Light-OCR vision, and application preparation with strictly zero candidate fabrication.
             </p>
           </div>
 
@@ -349,7 +349,7 @@ export default function DashboardPage() {
           <Link href="/dashboard/search" className="p-3.5 rounded-xl bg-slate-50 hover:bg-slate-100 transition-all border border-slate-200/80">
             <div className="text-xs font-semibold text-slate-500">1. Discovered</div>
             <div className="text-2xl font-black text-slate-800 mt-1">{analytics?.total_jobs_discovered ?? 0}</div>
-            <div className="text-[10px] text-slate-400 mt-0.5">LinkedIn &amp; Jobicy</div>
+            <div className="text-[10px] text-slate-400 mt-0.5">Selected platforms</div>
           </Link>
 
           {/* Ready for Review */}
@@ -541,8 +541,8 @@ export default function DashboardPage() {
 
               <p className="text-xs text-slate-600 leading-relaxed">
                 {isAutonomous
-                  ? "Agent will autonomously submit applications meeting >80% match confidence and queue uncertain ones."
-                  : "Agent will prepare candidate answers and queue all applications for your 1-click approval."}
+                  ? "The agent prepares matching applications for review; you submit them on the official platform."
+                  : "The agent prepares candidate answers and queues applications for your review."}
               </p>
 
               <Button
@@ -615,7 +615,7 @@ export default function DashboardPage() {
                     Live Job Search &amp; Scan
                   </div>
                   <p className="text-xs text-slate-500 line-clamp-2">
-                    Scrape and aggregate live postings from LinkedIn, Jobicy, and direct platforms with match scores.
+                    Search enabled feeds, guide you to other official job boards, and score listings against your profile.
                   </p>
                 </div>
               </Link>

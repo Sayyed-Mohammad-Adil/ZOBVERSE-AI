@@ -15,6 +15,7 @@ class JobBase(BaseModel):
     salary_max: Optional[float] = None
     salary_currency: Optional[str] = None
     salary_period: Optional[str] = None
+    experience: Optional[str] = None
     description: str
     requirements: Optional[str] = None
     responsibilities: Optional[str] = None
@@ -42,4 +43,3 @@ class JobResponse(JobBase):
 class SkillCount(BaseModel):
     skill: str
     count: int
-

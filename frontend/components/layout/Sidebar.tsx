@@ -240,7 +240,7 @@ export default function Sidebar() {
           <div className="sidebar-expandable-text min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
               <span className="font-extrabold text-base tracking-tight text-white group-hover/logo:text-blue-200 transition-colors">
-                Open Job
+                ZOBVERSE AI
               </span>
             </div>
             <p className="text-[11px] text-slate-400 font-medium truncate">

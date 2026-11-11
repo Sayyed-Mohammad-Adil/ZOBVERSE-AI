@@ -81,7 +81,7 @@ const CODE_EXAMPLES = {
   -d "username=engineer@example.com&password=your_secure_password"`,
   python: `import httpx
 
-# 1. Connect to local Open Job daemon
+# 1. Connect to local ZOBVERSE AI daemon
 client = httpx.Client(base_url="http://localhost:8000/api/v1")
 
 # 2. Authenticate
@@ -119,7 +119,7 @@ export default function ResourcesPage() {
   const [activeTab, setActiveTab] = useState<"curl" | "python" | "node">("python");
 
   useEffect(() => {
-    document.title = "Resources & API Documentation | Open Job";
+    document.title = "Resources & API Documentation | ZOBVERSE AI";
   }, []);
 
   const copyCode = (key: string, text: string) => {
@@ -138,7 +138,7 @@ export default function ResourcesPage() {
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <Image
             src="/bg-resources.jpg"
-            alt="Open Job Developer Resources & API References"
+            alt="ZOBVERSE AI Developer Resources & API References"
             fill
             priority
             className="object-cover object-center opacity-35 mix-blend-screen scale-105"
@@ -157,7 +157,7 @@ export default function ResourcesPage() {
           </h1>
 
           <p className="max-w-2xl mx-auto text-base sm:text-lg text-slate-400 leading-relaxed">
-            Integrate with the Open Job local FastAPI daemon, configure custom LLM inference endpoints,
+            Integrate with the ZOBVERSE AI local FastAPI daemon, configure custom LLM inference endpoints,
             and inspect how Light-OCR parses multi-column CVs.
           </p>
 
@@ -192,7 +192,7 @@ export default function ResourcesPage() {
         <div className="space-y-6">
           <div className="text-center space-y-2 max-w-2xl mx-auto px-4">
             <h2 className="text-2xl sm:text-3xl font-black text-white">Developer &amp; Ecosystem Subsystems</h2>
-            <p className="text-xs sm:text-sm text-slate-400">Explore dedicated technical documentation for every layer of Open Job</p>
+            <p className="text-xs sm:text-sm text-slate-400">Explore dedicated technical documentation for every layer of ZOBVERSE AI</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -279,11 +279,11 @@ export default function ResourcesPage() {
               </div>
               <h3 className="text-base font-bold text-white">Local PostgreSQL Storage</h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Open Job stores applications, resumes, and matched postings in a localized PostgreSQL instance with SQLAlchemy ORM.
+                ZOBVERSE AI stores applications, resumes, and matched postings in a localized PostgreSQL instance with SQLAlchemy ORM.
               </p>
             </div>
             <div className="text-[11px] font-mono text-cyan-300 bg-slate-950 p-2.5 rounded-lg border border-slate-800 break-all select-all">
-              DATABASE_URL=postgresql://user:pass@localhost:5432/openjob
+              DATABASE_URL=postgresql://username:password@localhost:5432/job_agent
             </div>
           </div>
 

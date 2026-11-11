@@ -33,7 +33,7 @@ export default function ReportingPage() {
   const [timeRange, setTimeRange] = useState<"7d" | "30d" | "all">("30d");
 
   useEffect(() => {
-    document.title = "Analytics & Reports | Open Job";
+    document.title = "Analytics & Reports | ZOBVERSE AI";
     loadReportingData();
   }, []);
 
@@ -131,7 +131,7 @@ export default function ReportingPage() {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `openjob_applications_${new Date().toISOString().split("T")[0]}.csv`);
+    link.setAttribute("download", `zobverse_ai_applications_${new Date().toISOString().split("T")[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -147,7 +147,7 @@ export default function ReportingPage() {
               Reporting &amp; Funnel Analytics
             </h1>
             <Badge variant="purple" size="sm" dot>
-              OPEN JOB INTELLIGENCE
+              ZOBVERSE AI INTELLIGENCE
             </Badge>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">

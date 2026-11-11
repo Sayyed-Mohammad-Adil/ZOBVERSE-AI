@@ -64,7 +64,7 @@ const REPOS = [
 
 export default function OpenSourceCorePage() {
   useEffect(() => {
-    document.title = "Open Source Core & Light-OCR Engine | Open Job Resources";
+    document.title = "Open Source Core & Light-OCR Engine | ZOBVERSE AI Resources";
   }, []);
 
   return (
@@ -134,7 +134,7 @@ export default function OpenSourceCorePage() {
             Transparent Core Components
           </h2>
           <p className="text-sm text-slate-400">
-            Every module in the Open Job stack is designed for candidate sovereignty, auditability, and self-hosting.
+            Every module in the ZOBVERSE AI stack is designed for candidate sovereignty, auditability, and self-hosting.
           </p>
         </div>
 
@@ -189,7 +189,7 @@ export default function OpenSourceCorePage() {
             <div className="text-slate-500 pt-2"># 2. Launch PostgreSQL, FastAPI Daemon &amp; Next.js UI</div>
             <div className="text-cyan-300">docker compose up -d</div>
             <div className="text-slate-500 pt-2"># 3. Open local control dashboard</div>
-            <div className="text-emerald-400">echo &quot;Open Job active at http://localhost:3000&quot;</div>
+            <div className="text-emerald-400">echo &quot;ZOBVERSE AI active at http://localhost:3000&quot;</div>
           </div>
         </div>
 

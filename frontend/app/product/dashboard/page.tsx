@@ -46,7 +46,7 @@ const DAEMON_SERVICES = [
 
 export default function AgentDashboardProductPage() {
   useEffect(() => {
-    document.title = "Agent Dashboard — Autonomous Control Room | Open Job";
+    document.title = "Agent Dashboard — Autonomous Control Room | ZOBVERSE AI";
   }, []);
 
   const [activeTab, setActiveTab] = useState<"architecture" | "daemons" | "safety">("architecture");

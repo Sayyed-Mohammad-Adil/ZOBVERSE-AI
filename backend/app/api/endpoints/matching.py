@@ -7,6 +7,7 @@ from app.models.profile import CandidateProfile
 from app.models.preferences import CandidatePreferences
 from app.schemas.matching import MatchRequest, MatchResult
 from app.matching.engine import MatchingEngine
+from app.adapters.registry import ALL_SOURCE_NAMES
 
 router = APIRouter()
 engine = MatchingEngine()
@@ -18,7 +19,7 @@ async def evaluate_match(req: MatchRequest, db: AsyncSession = Depends(get_db)):
     job = job_res.scalars().first()
     if (
         not job
-        or job.source.lower() not in {"linkedin", "jobicy", "csv_import"}
+        or job.source.lower() not in ALL_SOURCE_NAMES
         or job.external_job_id.lower().startswith("dummy_")
     ):
         raise HTTPException(status_code=404, detail="Job not found")

@@ -25,7 +25,7 @@ app.include_router(api_router, prefix="/api/v1")
 
 @app.get("/")
 async def root():
-    return {"message": "AI Job Agent API v1"}
+    return {"message": "ZOBVERSE AI API v1"}
 
 @app.get("/health")
 async def health_check():

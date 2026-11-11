@@ -73,6 +73,7 @@ class LinkedInAdapter(JobSourceAdapter):
 
                             loc_tag = card.find("span", class_="job-search-card__location")
                             loc = loc_tag.get_text(strip=True) if loc_tag else ""
+                            posted_tag = card.find("time")
 
                             jobs.append({
                                 "external_job_id": f"li_{ext_id}",
@@ -85,8 +86,15 @@ class LinkedInAdapter(JobSourceAdapter):
                                 "salary_min": None,
                                 "salary_max": None,
                                 "salary_currency": None,
+                                "salary_period": None,
+                                "experience": None,
                                 "work_mode": (
                                     "Remote" if "remote" in loc.lower() else None
+                                ),
+                                "posted_at": (
+                                    posted_tag.get("datetime")
+                                    if posted_tag
+                                    else None
                                 ),
                             })
                         except Exception as parse_err:
@@ -117,6 +125,9 @@ class LinkedInAdapter(JobSourceAdapter):
             "salary_min": raw_job.get("salary_min"),
             "salary_max": raw_job.get("salary_max"),
             "salary_currency": raw_job.get("salary_currency"),
+            "salary_period": raw_job.get("salary_period"),
+            "experience": raw_job.get("experience"),
+            "posted_at": raw_job.get("posted_at"),
             "work_mode": raw_job.get("work_mode"),
         }
 

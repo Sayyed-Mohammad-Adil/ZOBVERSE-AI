@@ -29,7 +29,7 @@ export default function AboutPage() {
   const [ocrStatus, setOcrStatus] = useState<OcrStatus | null>(null);
 
   useEffect(() => {
-    document.title = "About | Open Job";
+    document.title = "About | ZOBVERSE AI";
     void fetchWithAuth("/resumes/ocr/status")
       .then(async (response) => {
         if (!response.ok) throw new Error("Could not check OCR availability.");
@@ -49,7 +49,7 @@ export default function AboutPage() {
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <Image
             src="/about-ai-core.jpg"
-            alt="Open Job Cybernetic AI Humanoid Core"
+            alt="ZOBVERSE AI Cybernetic AI Humanoid Core"
             fill
             priority
             className="object-cover object-right md:object-[85%_center] opacity-45 mix-blend-screen transition-all duration-1000 scale-105 animate-cyber-pulse"
@@ -75,7 +75,7 @@ export default function AboutPage() {
               </span>
             </div>
             <Badge variant="purple" size="sm" dot pulse>
-              OPEN JOB PLATFORM v2.0
+              ZOBVERSE AI PLATFORM v2.0
             </Badge>
             <span className="text-xs text-cyan-400 font-mono flex items-center gap-1.5 bg-cyan-950/60 border border-cyan-500/40 px-2.5 py-0.5 rounded-full shadow-[0_0_10px_rgba(6,182,212,0.2)]">
               <Eye className="w-3.5 h-3.5" /> Powered by Light-OCR
@@ -83,11 +83,11 @@ export default function AboutPage() {
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">
-            Open Job: Truthful, Autonomous &amp; Sovereign Career Intelligence
+            ZOBVERSE AI: Truthful, Autonomous &amp; Sovereign Career Intelligence
           </h1>
 
           <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-            Open Job replaces mindless application spam with high-precision, factual career alignment.
+            ZOBVERSE AI replaces mindless application spam with high-precision, factual career alignment.
             Engineered with zero hallucination constraints, local offline document vision powered by Light-OCR,
             and explainable deterministic AI evaluation.
           </p>
@@ -111,7 +111,7 @@ export default function AboutPage() {
         </div>
       </div>
 
-      {/* Pillars of Open Job */}
+      {/* Pillars of ZOBVERSE AI */}
       <div className="space-y-4">
         <div>
           <h2 className="text-xl font-black text-slate-900 tracking-tight">
@@ -133,7 +133,7 @@ export default function AboutPage() {
                 Rule 2: Zero Fabrication
               </h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Open Job strictly prohibits hallucinating credentials, skills, or answers.
+                ZOBVERSE AI strictly prohibits hallucinating credentials, skills, or answers.
                 Drafts use the resume and profile details you provide. Review generated content
                 and confirm that each claim is supported before submitting.
               </p>
@@ -154,7 +154,7 @@ export default function AboutPage() {
                 Light-OCR Vision Core
               </h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Integrated with <strong>@arcships/light-ocr</strong>, Open Job performs fast,
+                Integrated with <strong>@arcships/light-ocr</strong>, ZOBVERSE AI performs fast,
                 OCR for scanned PDFs and images using the locally installed PP-OCRv6 Small engine.
                 Text extraction runs locally on the configured CPU provider.
               </p>
@@ -197,7 +197,7 @@ export default function AboutPage() {
               <div className="relative aspect-[16/10] w-full overflow-hidden">
                 <Image
                   src="/about-ai-core.jpg"
-                  alt="Open Job Neural Vision Core"
+                  alt="ZOBVERSE AI Neural Vision Core"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-700"
                 />
@@ -262,7 +262,7 @@ export default function AboutPage() {
             </h2>
 
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              Open Job combines local document perception with deterministic reasoning.
+              ZOBVERSE AI combines local document perception with deterministic reasoning.
               Resume OCR runs locally. Job-source requests and any configured LLM may use network services;
               check the connection status in Settings and review data before submitting.
             </p>
@@ -436,7 +436,7 @@ export default function AboutPage() {
           </h3>
         </div>
         <p className="text-xs text-slate-300 leading-relaxed">
-          Open Job does not sell your candidate data, resume, or credentials to third-party data brokers.
+          ZOBVERSE AI does not sell your candidate data, resume, or credentials to third-party data brokers.
           All session cookies, passwords, and tokens are encrypted with AES-256 in local secure storage.
           You retain full ownership to revoke credentials, delete applications, or reset all profiles with 1 click.
         </p>

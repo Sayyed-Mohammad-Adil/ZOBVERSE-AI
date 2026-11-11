@@ -10,6 +10,7 @@ class CandidatePreferencesBase(BaseModel):
     preferred_roles: Optional[List[str]] = None
     excluded_roles: Optional[List[str]] = None
     preferred_locations: Optional[List[str]] = None
+    job_sources: List[str] = Field(default_factory=lambda: ["linkedin", "jobicy"])
     
     remote_only: Optional[bool] = False
     willing_to_relocate: Optional[bool] = False

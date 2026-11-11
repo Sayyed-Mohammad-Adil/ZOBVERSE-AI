@@ -1,25 +1,19 @@
-/**
- * Resolves API URL dynamically:
- * 1. Explicit env var NEXT_PUBLIC_API_URL if configured.
- * 2. In browser: dynamically points to the current server's hostname on port 8000
- *    (e.g., if visiting http://192.168.1.50:3000 or public IP, connects to http://<that-ip>:8000/api/v1).
- * 3. Fallback: http://localhost:8000/api/v1
- */
-export function getApiUrl(): string {
-  if (process.env.NEXT_PUBLIC_API_URL) {
-    return process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, "");
-  }
-  if (typeof window !== "undefined") {
-    const { protocol, hostname } = window.location;
-    return `${protocol}//${hostname}:8000/api/v1`;
-  }
-  return "http://localhost:8000/api/v1";
+const API_PATH = "/api/v1";
+
+function normalizeApiBase(url: string): string {
+  const base = url.replace(/\/+$/, "");
+  return base.endsWith(API_PATH) ? base : `${base}${API_PATH}`;
 }
 
-export const API_URL =
-  typeof window !== "undefined"
-    ? `${window.location.protocol}//${window.location.hostname}:8000/api/v1`
-    : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1");
+export function getApiUrl(): string {
+  if (typeof window !== "undefined") return API_PATH;
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return normalizeApiBase(process.env.NEXT_PUBLIC_API_URL);
+  }
+  return normalizeApiBase("http://localhost:8000");
+}
+
+export const API_URL = getApiUrl();
 
 export async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -37,10 +31,21 @@ export async function fetchWithAuth(endpoint: string, options: RequestInit = {})
   const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
   const fullUrl = endpoint.startsWith("http") ? endpoint : `${baseUrl}${cleanEndpoint}`;
 
-  const response = await fetch(fullUrl, {
-    ...options,
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(fullUrl, {
+      ...options,
+      headers,
+    });
+  } catch (error) {
+    if (error instanceof TypeError) {
+      throw new Error(
+        `Cannot reach the API at ${fullUrl}. Make sure the backend is running and reachable.`,
+        { cause: error },
+      );
+    }
+    throw error;
+  }
 
   if (response.status === 401) {
     // Unauthorized, trigger logout

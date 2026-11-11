@@ -56,16 +56,16 @@ export default function SettingsPage() {
   const [linkedinMsg, setLinkedinMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
-    loadSettings();
+    void loadSettings();
   }, []);
 
-  const loadSettings = async () => {
+  async function loadSettings() {
     try {
       const meRes = await fetchWithAuth("/auth/me");
       if (meRes.ok) {
         const me = await meRes.json();
         setUserId(me.id);
-        loadLinkedinSettings(me.id);
+        await loadLinkedinSettings(me.id);
       }
 
       const aiRes = await fetchWithAuth("/settings/ai");
@@ -87,9 +87,9 @@ export default function SettingsPage() {
     } catch (e) {
       console.error(e);
     }
-  };
+  }
 
-  const loadLinkedinSettings = async (uid: number) => {
+  async function loadLinkedinSettings(uid: number) {
     try {
       const res = await fetchWithAuth(`/settings/linkedin/${uid}`);
       if (res.ok) {
@@ -107,7 +107,7 @@ export default function SettingsPage() {
     } catch (e) {
       console.error("Error loading LinkedIn settings:", e);
     }
-  };
+  }
 
   const handleSaveLinkedin = async () => {
     if (!userId) return;
@@ -405,7 +405,7 @@ export default function SettingsPage() {
               <span>Multi-Source Ingestion Connectors</span>
             </CardTitle>
             <CardDescription>
-              Discovered feeds with compliance capabilities and portal permissions
+              Live feeds and guided official-site workflows. CAPTCHA and access controls are never bypassed.
             </CardDescription>
           </div>
         </CardHeader>
@@ -421,45 +421,43 @@ export default function SettingsPage() {
                   <h4 className="font-extrabold text-sm text-slate-900">
                     {source.name}
                   </h4>
-                  <Badge variant="cyan" size="sm">
-                    Configured job source
+                  <Badge
+                    variant={source.status === "live" ? "success" : "warning"}
+                    size="sm"
+                  >
+                    {source.status === "live" ? "Live search" : "Guided only"}
                   </Badge>
                 </div>
                 <div className="flex gap-2 flex-wrap text-[11px] pt-1">
                   <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-medium">
-                    Automated Discovery
+                    {source.capabilities?.search ? "Live discovery" : "Official-site search"}
                   </span>
                   <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-medium">
-                    JD Skill Parsing
+                    Application preparation
                   </span>
-                  {source.capabilities?.automation_support ? (
-                    <span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-md font-semibold border border-emerald-200">
-                      Direct Submission Allowed
-                    </span>
-                  ) : (
-                    <span className="bg-amber-50 text-amber-800 px-2 py-0.5 rounded-md font-semibold border border-amber-200">
-                      Human Review Gate
-                    </span>
-                  )}
+                  <span className="bg-amber-50 text-amber-800 px-2 py-0.5 rounded-md font-semibold border border-amber-200">
+                    Candidate submits on platform
+                  </span>
                 </div>
+                <p className="text-[11px] text-slate-500 max-w-2xl">{source.notice}</p>
               </div>
 
               <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200 self-start sm:self-center">
-                Availability checked during scans
+                {source.status === "live" ? "Search enabled" : "Partner access required"}
               </span>
             </div>
           ))}
         </div>
       </Card>
 
-      {/* LinkedIn Account Connection & Easy-Apply Guardrails */}
+      {/* LinkedIn Account Connection & Application Guardrails */}
       <Card className="glass-card" id="linkedin">
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <CardTitle className="text-base flex items-center gap-2">
                 <Link2 className="w-5 h-5 text-blue-600" />
-                <span>LinkedIn Integration &amp; Easy-Apply Account</span>
+                <span>LinkedIn Integration &amp; Session Status</span>
               </CardTitle>
               <CardDescription>
                 Connect your LinkedIn profile session or credentials for direct autonomous Easy Apply and live status monitoring
@@ -506,12 +504,12 @@ export default function SettingsPage() {
               </div>
               <p className="text-slate-500 text-[11px]">
                 {linkedin?.connected
-                  ? `Authenticated via ${
+                  ? `Connection verified via ${
                       linkedin?.auth_method === "session_cookie"
                         ? `Session Cookie (li_at: ${linkedin?.cookie_preview || "Configured"})`
                         : `Credentials (${linkedin?.username || "Account"})`
-                    } • Easy Apply is ${linkedin?.auto_easy_apply ? "ACTIVE" : "PAUSED"}`
-                  : "Connect your LinkedIn session below to allow the agent to submit Easy Apply jobs autonomously."}
+                    } • applications remain review-only`
+                  : "Connect your LinkedIn session for account status checks. This build does not submit applications."}
               </p>
             </div>
 
@@ -702,7 +700,7 @@ export default function SettingsPage() {
                     </div>
                   </div>
                   <p className="text-[10px] text-emerald-800 leading-tight">
-                    ✓ This cookie is actively passed into headless Playwright browser contexts for autonomous Easy-Apply applications.
+                    ✓ The session is stored for connection checks. Current application cycles prepare items for candidate review and do not submit applications.
                   </p>
                 </div>
               )}
@@ -770,9 +768,9 @@ export default function SettingsPage() {
           {/* Easy-Apply Auto Toggle */}
           <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
             <div>
-              <div className="font-bold text-slate-900">Autonomous LinkedIn Easy-Apply</div>
+              <div className="font-bold text-slate-900">LinkedIn Application Preparation</div>
               <p className="text-slate-500 text-[11px]">
-                When enabled, the agent will submit applications matching your criteria directly on LinkedIn without requiring manual confirmation.
+                This preference is retained, but this build does not submit applications to LinkedIn. Prepared applications remain in your review queue until you submit them on the official platform.
               </p>
             </div>
             <input

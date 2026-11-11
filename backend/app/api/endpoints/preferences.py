@@ -4,6 +4,7 @@ from sqlalchemy.future import select
 from app.core.database import get_db
 from app.models.preferences import CandidatePreferences
 from app.schemas.preferences import CandidatePreferencesCreate, CandidatePreferencesUpdate, CandidatePreferencesResponse
+from app.adapters.registry import DEFAULT_JOB_SOURCES, PLATFORMS_BY_ID
 from typing import Any
 
 router = APIRouter()
@@ -19,7 +20,8 @@ async def get_preferences(user_id: int, db: AsyncSession = Depends(get_db)) -> A
             currency="USD",
             salary_period="Annual",
             daily_application_limit=10,
-            automation_mode="Assisted"
+            automation_mode="Assisted",
+            job_sources=DEFAULT_JOB_SOURCES,
         )
         db.add(preferences)
         await db.commit()
@@ -33,6 +35,23 @@ async def upsert_preferences(user_id: int, preferences_in: CandidatePreferencesU
     preferences = result.scalars().first()
     
     update_data = preferences_in.model_dump(exclude_unset=True)
+    if "job_sources" in update_data:
+        selected_sources = list(
+            dict.fromkeys(
+                source.strip().lower()
+                for source in (update_data["job_sources"] or [])
+            )
+        )
+        unknown_sources = [
+            source for source in selected_sources
+            if source not in PLATFORMS_BY_ID
+        ]
+        if unknown_sources:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Unknown job platform(s): {', '.join(unknown_sources)}",
+            )
+        update_data["job_sources"] = selected_sources
     if preferences:
         for field, value in update_data.items():
             setattr(preferences, field, value)
@@ -47,4 +66,3 @@ async def upsert_preferences(user_id: int, preferences_in: CandidatePreferencesU
 @router.post("/", response_model=CandidatePreferencesResponse)
 async def create_preferences(user_id: int, preferences_in: CandidatePreferencesCreate, db: AsyncSession = Depends(get_db)) -> Any:
     return await upsert_preferences(user_id, preferences_in, db)
-

@@ -1,7 +1,7 @@
 {
-  "name": "ai-job-agent-root",
+  "name": "zobverse-ai",
   "version": "1.0.0",
-  "description": "Root package for Auto Job Applier",
+  "description": "ZOBVERSE AI — Find. Apply. Get Hired.",
   "scripts": {
     "dev:frontend": "cd frontend && npm run dev",
     "dev:backend": "cd backend && uvicorn app.main:app --reload",

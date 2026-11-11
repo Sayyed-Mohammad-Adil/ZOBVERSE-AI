@@ -104,7 +104,7 @@ export default function ProductPage() {
   const [activeTab, setActiveTab] = useState<string>("dashboard");
 
   useEffect(() => {
-    document.title = "Product Overview & Core Modules | Open Job";
+    document.title = "Product Overview & Core Modules | ZOBVERSE AI";
     // Check hash on load
     if (window.location.hash) {
       const hashId = window.location.hash.replace("#", "");
@@ -126,7 +126,7 @@ export default function ProductPage() {
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <Image
             src="/bg-product.jpg"
-            alt="Open Job Product Command Center"
+            alt="ZOBVERSE AI Product Command Center"
             fill
             priority
             className="object-cover object-center opacity-40 mix-blend-screen scale-105 animate-cyber-pulse"
@@ -149,7 +149,7 @@ export default function ProductPage() {
           </h1>
 
           <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-2xl">
-            Explore the complete feature suite of Open Job. From discovery and automated CV vision parsing
+            Explore the complete feature suite of ZOBVERSE AI. From discovery and automated CV vision parsing
             to strict review verification, interview tracking, and compensation negotiation.
           </p>
 

@@ -11,7 +11,7 @@ async def test_api_root_and_health():
     async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
         res_root = await client.get("/")
         assert res_root.status_code == 200
-        assert res_root.json() == {"message": "AI Job Agent API v1"}
+        assert res_root.json() == {"message": "ZOBVERSE AI API v1"}
 
         res_health = await client.get("/health")
         assert res_health.status_code == 200

@@ -13,9 +13,15 @@ from app.models.audit_log import AuditLog
 from app.models import CandidateCredential
 from app.services.agent_console import agent_console
 from app.ai.laya.decision import LayaDecisionService
+from app.adapters.registry import (
+    DEFAULT_JOB_SOURCES,
+    PLATFORMS_BY_ID,
+    get_platforms_response,
+)
+from app.core.security import get_current_user
 import httpx
 import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Any, Dict, Optional
 
 router = APIRouter()
@@ -88,36 +94,62 @@ async def test_laya_service():
 
 @router.get("/job-sources")
 async def get_job_sources():
-    return [
-        {
-            "id": "linkedin",
-            "name": "LinkedIn Jobs",
-            "status": "configured",
-            "capabilities": {
-                "search": True,
-                "job_details": False,
-                "application_url": True,
-                "application_preparation": True,
-                "application_tracking": False,
-                "automation_support": True,
-                "manual_action_required": False
-            }
-        },
-        {
-            "id": "jobicy",
-            "name": "Jobicy Remote Jobs",
-            "status": "configured",
-            "capabilities": {
-                "search": True,
-                "job_details": False,
-                "application_url": True,
-                "application_preparation": True,
-                "application_tracking": False,
-                "automation_support": False,
-                "manual_action_required": True
-            }
-        }
-    ]
+    return get_platforms_response()
+
+
+class JobSourcePreferencesInput(BaseModel):
+    platforms: list[str] = Field(default_factory=list)
+
+
+@router.get("/job-sources/preferences")
+async def get_job_source_preferences(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(CandidatePreferences).where(
+            CandidatePreferences.user_id == current_user.id
+        )
+    )
+    preferences = result.scalars().first()
+    selected = (
+        preferences.job_sources
+        if preferences and isinstance(preferences.job_sources, list)
+        else DEFAULT_JOB_SOURCES
+    )
+    return {"platforms": selected}
+
+
+@router.put("/job-sources/preferences")
+async def update_job_source_preferences(
+    request: JobSourcePreferencesInput,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    selected = list(dict.fromkeys(platform.strip().lower() for platform in request.platforms))
+    unsupported = [platform for platform in selected if platform not in PLATFORMS_BY_ID]
+    if unsupported:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Unknown job platform(s): {', '.join(unsupported)}",
+        )
+
+    result = await db.execute(
+        select(CandidatePreferences).where(
+            CandidatePreferences.user_id == current_user.id
+        )
+    )
+    preferences = result.scalars().first()
+    if preferences is None:
+        preferences = CandidatePreferences(
+            user_id=current_user.id,
+            job_sources=selected,
+        )
+        db.add(preferences)
+    else:
+        preferences.job_sources = selected
+    await db.commit()
+    return {"platforms": selected}
 
 # --- Phase 36 / 66: Privacy & Data Export ---
 

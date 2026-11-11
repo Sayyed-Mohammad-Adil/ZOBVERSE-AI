@@ -18,11 +18,11 @@ export function PublicFooter() {
                 </div>
               </div>
               <span className="font-extrabold text-base tracking-tight text-white">
-                Open <span className="text-cyan-400">Job</span>
+                ZOBVERSE AI
               </span>
             </div>
             <p className="text-slate-400 text-xs max-w-sm leading-relaxed">
-              Autonomous AI application intelligence designed for radical honesty, zero fabrication,
+              Find. Apply. Get Hired. Autonomous AI application intelligence designed for radical honesty, zero fabrication,
               and verifiable career acceleration powered by Light-OCR vision and Laya reasoning.
             </p>
             <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[11px] text-slate-400 pt-1 font-mono">
@@ -102,7 +102,7 @@ export function PublicFooter() {
 
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-400 text-[11px]">
           <div>
-            © {new Date().getFullYear()} Open Job — Engineered with Open Code. Built for candidate sovereignty.
+            © {new Date().getFullYear()} ZOBVERSE AI — Engineered with Open Code. Built for candidate sovereignty.
           </div>
           <div className="flex items-center gap-4">
             <Link href="/info" className="hover:text-white">Architecture</Link>

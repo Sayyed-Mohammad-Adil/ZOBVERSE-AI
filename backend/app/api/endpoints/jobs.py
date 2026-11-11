@@ -15,6 +15,7 @@ from app.models.user_job import UserJob
 from app.schemas.job import JobResponse, SkillCount
 from app.ai.laya.decision import LayaDecisionService
 from app.core.security import get_current_user
+from app.adapters.registry import JOB_PLATFORM_SOURCES
 
 logger = logging.getLogger(__name__)
 
@@ -150,6 +151,7 @@ async def list_jobs(
     skill_match_mode: str = Query(default="any", description="'any' (OR) or 'all' (AND)"),
     work_mode: Optional[str] = Query(default=None, description="Remote, Hybrid, Onsite"),
     source: Optional[str] = Query(default=None, description="Job source: LINKEDIN, JOBICY, etc."),
+    sources: Optional[List[str]] = Query(default=None, description="Filter by multiple platform ids"),
     min_salary: Optional[float] = Query(default=None, description="Minimum salary threshold"),
     min_match_score: Optional[float] = Query(default=None, ge=0, le=100),
     user_id: Optional[int] = Query(default=None, description="Candidate ID to score and rank jobs against candidate profile skills"),
@@ -177,13 +179,26 @@ async def list_jobs(
 
     stmt = select(Job).join(UserJob, UserJob.job_id == Job.id).where(
         UserJob.user_id == current_user.id,
-        func.lower(Job.source).in_(["linkedin", "jobicy"]),
+        func.lower(Job.source).in_(JOB_PLATFORM_SOURCES),
         func.substr(func.lower(Job.external_job_id), 1, 6) != "dummy_",
     )
 
     # 1. Source filter
     if source_str and source_str.lower() != "all":
+        if source_str.lower() not in JOB_PLATFORM_SOURCES:
+            raise HTTPException(status_code=422, detail="Unknown job source.")
         stmt = stmt.where(func.lower(Job.source) == source_str.lower())
+    if sources:
+        normalized_sources = list(dict.fromkeys(item.strip().lower() for item in sources))
+        unknown_sources = [
+            item for item in normalized_sources if item not in JOB_PLATFORM_SOURCES
+        ]
+        if unknown_sources:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Unknown job source(s): {', '.join(unknown_sources)}",
+            )
+        stmt = stmt.where(func.lower(Job.source).in_(normalized_sources))
 
     # 2. Work mode filter
     if mode_str and mode_str.lower() != "all":
@@ -319,7 +334,7 @@ async def get_skills_summary(
     result = await db.execute(
         select(Job).join(UserJob, UserJob.job_id == Job.id).where(
             UserJob.user_id == current_user.id,
-            func.lower(Job.source).in_(["linkedin", "jobicy"]),
+            func.lower(Job.source).in_(JOB_PLATFORM_SOURCES),
             func.substr(func.lower(Job.external_job_id), 1, 6) != "dummy_",
         )
     )

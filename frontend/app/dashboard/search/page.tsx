@@ -34,11 +34,56 @@ interface JobRecord {
   salary_min?: number | null;
   salary_max?: number | null;
   salary_currency?: string | null;
+  salary_period?: string | null;
+  experience?: string | null;
   canonical_url?: string | null;
   application_url?: string | null;
   posted_at?: string | null;
   match_score?: number | null;
   matched_skills?: string[];
+}
+
+interface JobPlatform {
+  id: string;
+  name: string;
+  status: "live" | "guided_only";
+  notice: string;
+  capabilities: {
+    search: boolean;
+    manual_action_required: boolean;
+  };
+}
+
+const OFFICIAL_SEARCH_URLS: Record<string, (query: string, location: string) => string> = {
+  linkedin: (query, location) =>
+    `https://www.linkedin.com/jobs/search/?${new URLSearchParams({ keywords: query, location })}`,
+  indeed: (query, location) =>
+    `https://www.indeed.com/jobs?${new URLSearchParams({ q: query, l: location })}`,
+  naukri: () => "https://www.naukri.com/",
+  internshala: () => "https://internshala.com/jobs/",
+  foundit: (query, location) =>
+    `https://www.foundit.in/srp/results?${new URLSearchParams({ query, locations: location })}`,
+  glassdoor: (query, location) =>
+    `https://www.glassdoor.com/Job/jobs.htm?${new URLSearchParams({ "sc.keyword": query, "locKeyword": location })}`,
+  wellfound: () => "https://wellfound.com/jobs",
+  shine: () => "https://www.shine.com/job-search/",
+  ziprecruiter: (query, location) =>
+    `https://www.ziprecruiter.com/jobs-search?${new URLSearchParams({ search: query, location })}`,
+  jobicy: (query) =>
+    `https://jobicy.com/jobs?${new URLSearchParams({ search: query })}`,
+};
+
+function isJobPlatform(value: unknown): value is JobPlatform {
+  if (!value || typeof value !== "object") return false;
+  const platform = value as Partial<JobPlatform>;
+  return (
+    typeof platform.id === "string" &&
+    typeof platform.name === "string" &&
+    (platform.status === "live" || platform.status === "guided_only") &&
+    typeof platform.notice === "string" &&
+    typeof platform.capabilities === "object" &&
+    platform.capabilities !== null
+  );
 }
 
 export default function SearchPage() {
@@ -47,7 +92,7 @@ export default function SearchPage() {
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   const [workMode, setWorkMode] = useState("All");
-  const [sourceFilter, setSourceFilter] = useState("linkedin");
+  const [sourceFilter, setSourceFilter] = useState("All");
   const [minSalary, setMinSalary] = useState("");
   const [resultLimit, setResultLimit] = useState(200);
   const [minMatchScore, setMinMatchScore] = useState("");
@@ -55,6 +100,10 @@ export default function SearchPage() {
   const [selectedJob, setSelectedJob] = useState<JobRecord | null>(null);
   const [preparingId, setPreparingId] = useState<number | null>(null);
   const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
+  const [preparedApplicationUrl, setPreparedApplicationUrl] = useState<string | null>(null);
+  const [availablePlatforms, setAvailablePlatforms] = useState<JobPlatform[]>([]);
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(["linkedin", "jobicy"]);
+  const [savingPlatforms, setSavingPlatforms] = useState(false);
 
   // Skill-Wise Search State
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
@@ -83,6 +132,34 @@ export default function SearchPage() {
     }
   };
 
+  const loadPlatforms = async (): Promise<string[]> => {
+    try {
+      const [sourcesRes, preferencesRes] = await Promise.all([
+        fetchWithAuth("/settings/job-sources"),
+        fetchWithAuth("/settings/job-sources/preferences"),
+      ]);
+      if (!sourcesRes.ok || !preferencesRes.ok) {
+        throw new Error("Could not load your job platform preferences.");
+      }
+      const sources: unknown = await sourcesRes.json();
+      const preferences = await preferencesRes.json();
+      const selected = Array.isArray(preferences.platforms)
+        ? preferences.platforms.filter(
+            (platform: unknown): platform is string => typeof platform === "string",
+          )
+        : ["linkedin", "jobicy"];
+      setAvailablePlatforms(
+        Array.isArray(sources) ? sources.filter(isJobPlatform) : [],
+      );
+      setSelectedPlatforms(selected);
+      return selected;
+    } catch (error) {
+      console.error("Could not load job platform preferences:", error);
+      setError(error instanceof Error ? error.message : "Could not load job platforms.");
+      return ["linkedin", "jobicy"];
+    }
+  };
+
   const loadCandidateProfileSkills = async (): Promise<string[]> => {
     try {
       setLoadingProfileSkills(true);
@@ -108,13 +185,22 @@ export default function SearchPage() {
     }
   };
 
-  const loadJobs = async (customSkills?: string[], customMode?: "any" | "all") => {
+  const loadJobs = async (
+    customSkills?: string[],
+    customMode?: "any" | "all",
+    customPlatforms?: string[],
+  ) => {
     try {
       setLoading(true);
       setError("");
 
       const activeSkills = customSkills ?? selectedSkills;
       const activeMode = customMode ?? skillMatchMode;
+      const activePlatforms = customPlatforms ?? selectedPlatforms;
+      if (activePlatforms.length === 0) {
+        setJobs([]);
+        return;
+      }
 
       const params = new URLSearchParams();
       params.append("limit", String(Math.min(500, Math.max(1, resultLimit))));
@@ -123,6 +209,7 @@ export default function SearchPage() {
         params.append("skills", activeSkills.join(","));
         params.append("skill_match_mode", activeMode);
       }
+      activePlatforms.forEach((platform) => params.append("sources", platform));
       if (workMode !== "All") params.append("work_mode", workMode);
       if (sourceFilter !== "All") params.append("source", sourceFilter);
       if (minSalary && parseFloat(minSalary) > 0) params.append("min_salary", minSalary);
@@ -144,13 +231,40 @@ export default function SearchPage() {
 
   useEffect(() => {
     void Promise.resolve().then(async () => {
+      const platforms = await loadPlatforms();
       await loadCandidateProfileSkills();
-      await loadJobs([]);
+      await loadJobs([], undefined, platforms);
       loadSkillsSummary();
     });
     // Load once with the initial filter values; subsequent filter changes use explicit handlers.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const togglePlatform = async (platformId: string) => {
+    const next = selectedPlatforms.includes(platformId)
+      ? selectedPlatforms.filter((platform) => platform !== platformId)
+      : [...selectedPlatforms, platformId];
+    try {
+      setSavingPlatforms(true);
+      const response = await fetchWithAuth("/settings/job-sources/preferences", {
+        method: "PUT",
+        body: JSON.stringify({ platforms: next }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.detail || "Could not save your platform preferences.");
+      }
+      setSelectedPlatforms(data.platforms);
+      if (sourceFilter !== "All" && !data.platforms.includes(sourceFilter)) {
+        setSourceFilter("All");
+      }
+      await loadJobs(undefined, undefined, data.platforms);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Could not save platform preferences.");
+    } finally {
+      setSavingPlatforms(false);
+    }
+  };
 
   // Toggle single skill tag
   const toggleSkill = (skillName: string) => {
@@ -217,6 +331,10 @@ export default function SearchPage() {
       setError("Enter a target role or at least one skill before starting discovery.");
       return;
     }
+    if (selectedPlatforms.length === 0) {
+      setError("Select at least one job platform before starting discovery.");
+      return;
+    }
 
     try {
       setScanning(true);
@@ -225,7 +343,7 @@ export default function SearchPage() {
       const params = new URLSearchParams();
       params.append("query", role || skills);
       if (skills) params.append("skills", skills);
-      if (sourceFilter !== "All") params.append("source", sourceFilter);
+      params.append("platforms", selectedPlatforms.join(","));
 
       const res = await fetchWithAuth(`/workers/scan?${params.toString()}`, {
         method: "POST",
@@ -242,8 +360,12 @@ export default function SearchPage() {
         result.fetched > 0
           ? `${result.message} ${result.newly_saved} new listings were added to your account.${
               result.errors?.length ? ` Some sources failed: ${result.errors.join("; ")}` : ""
-            }`
-          : `${result.message} Try a different role, skill, or location.`,
+            }${result.warnings?.length ? ` ${result.warnings.join("; ")}` : ""}`
+          : `${result.message}${
+              result.warnings?.length ? ` ${result.warnings.join("; ")}` : ""
+            }${
+              result.errors?.length ? ` Some sources failed: ${result.errors.join("; ")}` : ""
+            }`,
       );
       setTimeout(() => setFeedbackMsg(null), 6000);
     } catch (err) {
@@ -259,6 +381,7 @@ export default function SearchPage() {
   const handlePrepareJob = async (jobId: number) => {
     try {
       setPreparingId(jobId);
+      setPreparedApplicationUrl(null);
       const meRes = await fetchWithAuth("/auth/me");
       if (!meRes.ok) throw new Error("Please log in first");
       const me = await meRes.json();
@@ -270,8 +393,12 @@ export default function SearchPage() {
 
       if (res.ok) {
         const data = await res.json();
+        const job = jobs.find((candidate) => candidate.id === jobId);
+        setPreparedApplicationUrl(
+          data.application_url || job?.application_url || job?.canonical_url || null,
+        );
         setFeedbackMsg(
-          `✓ Application successfully prepared for ${data.job_title} at ${data.company}!`
+          `Application package is ready for ${data.job_title} at ${data.company}. No application was submitted.`
         );
         setTimeout(() => setFeedbackMsg(null), 5000);
       } else {
@@ -442,6 +569,16 @@ export default function SearchPage() {
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
             <span>{feedbackMsg}</span>
+            {preparedApplicationUrl && (
+              <a
+                href={preparedApplicationUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="font-bold underline underline-offset-2"
+              >
+                Continue on official job page
+              </a>
+            )}
           </div>
           <button
             onClick={() => setFeedbackMsg(null)}
@@ -664,8 +801,13 @@ export default function SearchPage() {
               className="px-3 py-2.5 bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
             >
               <option value="All">All Sources</option>
-              <option value="linkedin">LinkedIn</option>
-              <option value="jobicy">Jobicy</option>
+              {availablePlatforms
+                .filter((platform) => selectedPlatforms.includes(platform.id))
+                .map((platform) => (
+                  <option key={platform.id} value={platform.id}>
+                    {platform.name}
+                  </option>
+                ))}
             </select>
 
             {/* Salary */}
@@ -824,6 +966,11 @@ export default function SearchPage() {
                             {job.work_mode}
                           </Badge>
                         )}
+                        {job.experience && (
+                          <Badge variant="secondary" size="sm">
+                            {job.experience}
+                          </Badge>
+                        )}
 
                         {selectedSkills.length > 0 && matchedActiveSkills.length > 0 && (
                           <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1 font-mono">
@@ -859,6 +1006,14 @@ export default function SearchPage() {
                               {job.salary_max
                                 ? ` - ${formatSalary(job.salary_max, job.salary_currency)}`
                                 : ""}
+                            </span>
+                          </>
+                        )}
+                        {job.posted_at && (
+                          <>
+                            <span>•</span>
+                            <span className="text-slate-500">
+                              Posted {new Date(job.posted_at).toLocaleDateString()}
                             </span>
                           </>
                         )}
@@ -962,6 +1117,11 @@ export default function SearchPage() {
                       {selectedJob.work_mode}
                     </Badge>
                   )}
+                  {selectedJob.experience && (
+                    <Badge variant="secondary" size="sm">
+                      {selectedJob.experience}
+                    </Badge>
+                  )}
                   {selectedJob.skills_list && selectedJob.skills_list.length > 0 && (
                     <Badge variant="cyan" size="sm">
                       {selectedJob.skills_list.length} Skills Listed
@@ -1063,6 +1223,11 @@ export default function SearchPage() {
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
                   Role Overview &amp; Requirements
                 </h4>
+                {selectedJob.posted_at && (
+                  <p className="text-xs text-slate-500">
+                    Posted {new Date(selectedJob.posted_at).toLocaleDateString()}
+                  </p>
+                )}
                 <div className="text-sm text-slate-700 whitespace-pre-line leading-relaxed bg-slate-50/70 p-4 rounded-2xl border border-slate-200/80 font-sans">
                   {selectedJob.description || "Description not provided by source."}
                 </div>
@@ -1113,10 +1278,10 @@ export default function SearchPage() {
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="text-lg font-black text-slate-900">
-                  Targeted Skill Web Discovery
+                  Live Job Discovery
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Launch real-time scrapers across LinkedIn &amp; Jobicy targeting exact skills.
+                  Search enabled feeds and open other selected boards on their official search pages.
                 </p>
               </div>
               <button
@@ -1128,6 +1293,65 @@ export default function SearchPage() {
             </div>
 
             <div className="space-y-4">
+              <div>
+                <div className="text-xs font-bold text-slate-700 mb-2">
+                  Job platforms
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {availablePlatforms.map((platform) => (
+                    <label
+                      key={platform.id}
+                      className="flex items-start gap-2 rounded-xl border border-slate-200 p-2.5 text-xs cursor-pointer hover:border-blue-300"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedPlatforms.includes(platform.id)}
+                        disabled={savingPlatforms}
+                        onChange={() => void togglePlatform(platform.id)}
+                        className="mt-0.5 accent-blue-600"
+                      />
+                      <span className="min-w-0">
+                        <span className="flex items-center gap-1.5 font-bold text-slate-800">
+                          {platform.name}
+                          <span className={`rounded px-1 py-0.5 text-[9px] uppercase ${
+                            platform.status === "live"
+                              ? "bg-emerald-50 text-emerald-700"
+                              : "bg-amber-50 text-amber-700"
+                          }`}>
+                            {platform.status === "live" ? "Live" : "Guided"}
+                          </span>
+                        </span>
+                        <span className="mt-1 block text-[10px] leading-relaxed text-slate-500">
+                          {platform.notice}
+                        </span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
+                  {availablePlatforms
+                    .filter(
+                      (platform) =>
+                        selectedPlatforms.includes(platform.id) &&
+                        platform.status === "guided_only",
+                    )
+                    .map((platform) => {
+                      const searchUrl = OFFICIAL_SEARCH_URLS[platform.id];
+                      return searchUrl ? (
+                        <a
+                          key={platform.id}
+                          href={searchUrl(scanQuery || profileRole || scanSkillsInput, "Remote")}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[11px] font-semibold text-blue-700 hover:underline"
+                        >
+                          Open {platform.name} official search ↗
+                        </a>
+                      ) : null;
+                    })}
+                </div>
+              </div>
+
               <div>
                 <label className="text-xs font-bold text-slate-700 block mb-1">
                   Target Role Title

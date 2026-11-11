@@ -36,11 +36,11 @@ class PasswordResetConfirm(BaseModel):
 
 def _send_password_reset_email(recipient: str, reset_url: str) -> None:
     message = EmailMessage()
-    message["Subject"] = "Reset your Open Job password"
+    message["Subject"] = "Reset your ZOBVERSE AI password"
     message["From"] = settings.SMTP_FROM_EMAIL
     message["To"] = recipient
     message.set_content(
-        "We received a request to reset your Open Job password.\n\n"
+        "We received a request to reset your ZOBVERSE AI password.\n\n"
         f"Use this link within 30 minutes to choose a new password:\n{reset_url}\n\n"
         "If you did not request this, you can ignore this email."
     )

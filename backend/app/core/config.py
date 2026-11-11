@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    PROJECT_NAME: str = "AI Job Agent API"
+    PROJECT_NAME: str = "ZOBVERSE AI API"
     DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql+asyncpg://postgres:postgres@localhost:5432/job_agent")
     OLLAMA_URL: str = os.getenv("OLLAMA_URL", "http://localhost:11434")
     DEFAULT_LLM_MODEL: str = os.getenv("DEFAULT_LLM_MODEL", "llama3")

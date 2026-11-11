@@ -61,7 +61,7 @@ const PIPELINE_STAGES = [
     color: "from-indigo-600 to-purple-600",
     badge: "Scraping & Ingestion",
     description:
-      "Open Job runs background search workers querying LinkedIn job feeds, direct company career portals, and remote job listings. A cryptographic fingerprinting system ensures reposted or mirrored jobs are deduplicated so you never apply twice to the same requisition.",
+      "ZOBVERSE AI runs background search workers querying LinkedIn job feeds, direct company career portals, and remote job listings. A cryptographic fingerprinting system ensures reposted or mirrored jobs are deduplicated so you never apply twice to the same requisition.",
     details: [
       "Automated hourly discovery pulses across primary channels",
       "SHA-256 requisition deduplication across multi-board mirrors",
@@ -117,7 +117,7 @@ const PIPELINE_STAGES = [
 
 export default function HowItWorksPage() {
   useEffect(() => {
-    document.title = "How It Works | Open Job Pipeline Architecture";
+    document.title = "How It Works | ZOBVERSE AI Pipeline Architecture";
   }, []);
 
   const [activeStep, setActiveStep] = useState(0);
@@ -132,7 +132,7 @@ export default function HowItWorksPage() {
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <Image
             src="/bg-workflow.jpg"
-            alt="Open Job Pipeline Workflow"
+            alt="ZOBVERSE AI Pipeline Workflow"
             fill
             priority
             className="object-cover object-center opacity-35 mix-blend-screen scale-105"
@@ -144,7 +144,7 @@ export default function HowItWorksPage() {
 
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6 relative z-10">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-tight">
-            How Open Job Works. <br />
+            How ZOBVERSE AI Works. <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400">
               From Raw Resume to Final Offer.
             </span>
@@ -357,7 +357,7 @@ export default function HowItWorksPage() {
               href="/register"
               className="px-8 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold text-sm shadow-xl shadow-blue-600/30 transition-all"
             >
-              Get Started with Open Job →
+              Get Started with ZOBVERSE AI →
             </Link>
           </div>
         </div>

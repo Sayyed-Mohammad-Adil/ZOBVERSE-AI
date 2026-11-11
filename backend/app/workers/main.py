@@ -23,12 +23,14 @@ async def process_job(db: AsyncSession, job: BackgroundJob):
         location = payload.get("location", "Remote")
         requested_skills = payload.get("skills")
         source = payload.get("source")
+        sources = payload.get("platforms")
         await run_discovery(
             db,
             query=query,
             location=location,
             requested_skills=requested_skills,
             source=source,
+            sources=sources,
             user_id=payload.get("user_id"),
         )
     elif job.job_type == "duplicate_detection":

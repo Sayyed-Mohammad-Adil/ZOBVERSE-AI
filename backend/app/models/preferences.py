@@ -19,6 +19,7 @@ class CandidatePreferences(Base):
     excluded_roles = Column(JSON, nullable=True)
     
     preferred_locations = Column(JSON, nullable=True)
+    job_sources = Column(JSON, nullable=True, default=lambda: ["linkedin", "jobicy"])
     remote_only = Column(Boolean, default=False)
     willing_to_relocate = Column(Boolean, default=False)
     
@@ -27,4 +28,3 @@ class CandidatePreferences(Base):
     automation_mode = Column(String, default="Assisted") # Manual, Assisted, Automated
 
     user = relationship("User", back_populates="preferences")
-

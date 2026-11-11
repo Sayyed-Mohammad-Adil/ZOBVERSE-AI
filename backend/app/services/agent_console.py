@@ -18,6 +18,7 @@ from app.models import (
 )
 from app.matching.engine import MatchingEngine
 from app.ai.laya.decision import LayaDecisionService
+from app.adapters.registry import DEFAULT_JOB_SOURCES, PLATFORMS_BY_ID
 
 logger = logging.getLogger(__name__)
 
@@ -254,6 +255,12 @@ class AgentConsoleService:
             select(Application.job_id).where(Application.user_id == user_id)
         )
         applied_job_ids = set(applied_jobs_res.scalars().all())
+        selected_source_names = [
+            PLATFORMS_BY_ID[source].source_name.lower()
+            for source in (preferences.job_sources or DEFAULT_JOB_SOURCES)
+            if source in PLATFORMS_BY_ID
+        ]
+        selected_source_names.append("csv_import")
 
         jobs_res = await db.execute(
             select(Job)
@@ -261,7 +268,7 @@ class AgentConsoleService:
             .where(
                 UserJob.user_id == user_id,
                 Job.id.notin_(applied_job_ids) if applied_job_ids else True,
-                func.lower(Job.source).in_(["linkedin", "jobicy", "csv_import"]),
+                func.lower(Job.source).in_(selected_source_names),
                 func.substr(func.lower(Job.external_job_id), 1, 6) != "dummy_",
                 Job.status.notin_(["APPLIED", "SKIPPED"])
             ).order_by(Job.id.desc()).limit(35)

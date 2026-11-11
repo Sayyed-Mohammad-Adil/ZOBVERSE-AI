@@ -20,7 +20,7 @@ import {
 
 export default function OfferComparisonProductPage() {
   useEffect(() => {
-    document.title = "Offer Comparison & Negotiation Engine | Open Job Product";
+    document.title = "Offer Comparison & Negotiation Engine | ZOBVERSE AI Product";
   }, []);
 
   return (

@@ -9,6 +9,7 @@ from app.models.profile import CandidateProfile
 from app.models.resume import Resume
 from app.schemas.application import ApplicationCreate, ApplicationUpdate, ApplicationResponse
 from app.applications.prepare import ApplicationPreparer
+from app.adapters.registry import ALL_SOURCE_NAMES
 from typing import Any, List
 from datetime import datetime
 
@@ -41,12 +42,21 @@ async def list_applications(user_id: int, db: AsyncSession = Depends(get_db)) ->
             "job_company": job.company if job else None,
             "job_location": job.location if job else None,
             "job_source": job.source if job else None,
+            "job_application_url": (
+                (job.application_url or job.canonical_url) if job else None
+            ),
         }
         response_list.append(app_dict)
     return response_list
 
 @router.put("/{app_id}", response_model=ApplicationResponse)
 async def update_application(app_id: int, app_update: ApplicationUpdate, db: AsyncSession = Depends(get_db)) -> Any:
+    if app_update.status == "APPLIED" and not app_update.submission_confirmed:
+        raise HTTPException(
+            status_code=422,
+            detail="Confirm submission on the official platform before marking this application as applied.",
+        )
+
     result = await db.execute(select(Application).where(Application.id == app_id))
     app = result.scalars().first()
     if not app:
@@ -92,6 +102,7 @@ async def update_application(app_id: int, app_update: ApplicationUpdate, db: Asy
         "job_company": job.company if job else None,
         "job_location": job.location if job else None,
         "job_source": job.source if job else None,
+        "job_application_url": job.application_url or job.canonical_url if job else None,
     }
 
 @router.post("/prepare")
@@ -101,7 +112,7 @@ async def prepare_application_endpoint(job_id: int, user_id: int, db: AsyncSessi
     job = job_res.scalars().first()
     if (
         not job
-        or job.source.lower() not in {"linkedin", "jobicy", "csv_import"}
+        or job.source.lower() not in ALL_SOURCE_NAMES
         or job.external_job_id.lower().startswith("dummy_")
     ):
         raise HTTPException(status_code=404, detail="Job not found")
@@ -129,7 +140,6 @@ async def prepare_application_endpoint(job_id: int, user_id: int, db: AsyncSessi
     app_res = await db.execute(select(Application).where(Application.user_id == user_id, Application.job_id == job_id))
     existing = app_res.scalars().first()
     if existing:
-        existing.status = "READY"
         existing.notes = prep_data.get("cover_letter")
         existing.resume_id = default_resume.id if default_resume else None
         db.add(existing)
@@ -151,10 +161,13 @@ async def prepare_application_endpoint(job_id: int, user_id: int, db: AsyncSessi
         target_app = new_app
 
     return {
-        "message": "Application prepared successfully",
+        "message": "Application package prepared; no submission was made.",
         "application_id": target_app.id,
         "job_title": job.title,
         "company": job.company,
+        "source": job.source,
+        "application_url": job.application_url or job.canonical_url,
+        "submission_status": "REQUIRES_CANDIDATE_ACTION",
         "cover_letter": prep_data.get("cover_letter"),
         "confidence": prep_data.get("confidence", 0.95),
         "status": target_app.status
@@ -162,6 +175,12 @@ async def prepare_application_endpoint(job_id: int, user_id: int, db: AsyncSessi
 
 @router.post("/", response_model=ApplicationResponse)
 async def create_application(user_id: int, app_in: ApplicationCreate, db: AsyncSession = Depends(get_db)) -> Any:
+    if app_in.status == "APPLIED":
+        raise HTTPException(
+            status_code=422,
+            detail="Applications must be confirmed on the official platform before marking them as applied.",
+        )
+
     # Check duplicate application per Rule 2: Never apply twice to the same job
     result = await db.execute(
         select(Application).where(Application.user_id == user_id, Application.job_id == app_in.job_id)

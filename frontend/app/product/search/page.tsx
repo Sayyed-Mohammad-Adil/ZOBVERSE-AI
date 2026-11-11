@@ -21,13 +21,21 @@ import {
 } from "lucide-react";
 
 const FEED_SOURCES = [
-  { name: "LinkedIn Jobs", availability: "On demand", desc: "Searches publicly available LinkedIn job listings." },
-  { name: "Jobicy", availability: "On demand", desc: "Reads remote listings from the Jobicy public jobs API." },
+  { name: "LinkedIn Jobs", availability: "Live search", desc: "Searches public job listings; application submission is not automated." },
+  { name: "Indeed", availability: "Guided only", desc: "Opens the official search page; authorized partner API access is not configured." },
+  { name: "Naukri.com", availability: "Guided only", desc: "Opens the official search page; authorized partner API access is not configured." },
+  { name: "Internshala", availability: "Guided only", desc: "Opens the official job search page." },
+  { name: "Foundit", availability: "Guided only", desc: "Opens the official job search page." },
+  { name: "Glassdoor", availability: "Guided only", desc: "Opens the official job search page." },
+  { name: "Wellfound", availability: "Guided only", desc: "Opens the official job search page." },
+  { name: "Shine", availability: "Guided only", desc: "Opens the official job search page." },
+  { name: "ZipRecruiter", availability: "Guided only", desc: "Opens the official job search page." },
+  { name: "Jobicy", availability: "Live search", desc: "Reads remote listings from the Jobicy public jobs API." },
 ];
 
 export default function LiveJobFeedProductPage() {
   useEffect(() => {
-    document.title = "Live Job Feed & Discovery | Open Job Product";
+    document.title = "Live Job Feed & Discovery | ZOBVERSE AI Product";
   }, []);
 
   return (
@@ -63,7 +71,7 @@ export default function LiveJobFeedProductPage() {
           </h1>
 
           <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-2xl">
-            Continuous background discovery across LinkedIn, direct ATS portals, and remote boards. Automatically filters spam, deduplicates multi-board listings, and extracts true salary ranges.
+            Search live feeds from LinkedIn and Jobicy, or open other selected boards on their official sites. Listings are deduplicated by provider ID and canonical job URL; compensation is shown only when the source provides it.
           </p>
 
           <div className="flex flex-wrap items-center gap-4 pt-4">
@@ -95,7 +103,7 @@ export default function LiveJobFeedProductPage() {
               Never Apply Twice to the Same Requisition
             </h2>
             <p className="text-sm text-slate-300 leading-relaxed">
-              Recruiters re-post the same opening every week across multiple aggregators. Open Job computes cryptographic fingerprints (SHA-256) of normalized job descriptions, company entities, and title tokens to guarantee you never waste time evaluating ghost mirrors.
+              A job can appear on multiple boards. ZOBVERSE AI removes exact provider-ID and normalized-URL duplicates while preserving source links and original listing details.
             </p>
 
             <div className="space-y-3">
@@ -105,7 +113,7 @@ export default function LiveJobFeedProductPage() {
                   <span>Salary Normalization &amp; Currency Parsing</span>
                 </div>
                 <p className="text-xs text-slate-400 pl-6">
-                  Extracts undisclosed compensation ranges using NLP models, converting USD/EUR/INR into your preferred annualized target.
+                  Displays salary ranges and currency only when they are supplied by the source listing.
                 </p>
               </div>
 

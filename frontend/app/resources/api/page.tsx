@@ -87,7 +87,7 @@ const API_ENDPOINTS = [
 const CODE_EXAMPLES = {
   python: `import httpx
 
-# 1. Connect to local Open Job FastAPI daemon
+# 1. Connect to local ZOBVERSE AI FastAPI daemon
 client = httpx.Client(base_url="http://localhost:8000/api/v1")
 
 # 2. Authenticate
@@ -125,7 +125,7 @@ console.log("Match Alignment:", result.alignment_percentage);`,
 
 export default function ApiDocumentationPage() {
   useEffect(() => {
-    document.title = "REST API Documentation & Endpoints | Open Job Resources";
+    document.title = "REST API Documentation & Endpoints | ZOBVERSE AI Resources";
   }, []);
 
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
@@ -170,7 +170,7 @@ export default function ApiDocumentationPage() {
           </h1>
 
           <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-2xl">
-            Integrate with the Open Job local FastAPI daemon, configure custom LLM inference endpoints (Ollama, Gemini, OpenAI), and automate your career pipeline via code.
+            Integrate with the ZOBVERSE AI local FastAPI daemon, configure custom LLM inference endpoints (Ollama, Gemini, OpenAI), and automate your career pipeline via code.
           </p>
 
           <div className="flex flex-wrap items-center gap-4 pt-4">
@@ -280,7 +280,7 @@ export default function ApiDocumentationPage() {
 
         {/* Bottom CTA */}
         <div className="p-8 sm:p-12 rounded-3xl bg-gradient-to-r from-blue-950/40 via-cyan-950/30 to-indigo-950/40 border border-cyan-500/30 text-center space-y-4">
-          <h3 className="text-2xl font-black text-white">Ready to Build on Open Job?</h3>
+          <h3 className="text-2xl font-black text-white">Ready to Build on ZOBVERSE AI?</h3>
           <p className="text-sm text-slate-300 max-w-xl mx-auto leading-relaxed">
             Read the system architecture guides or check out the open-source vision parser core on GitHub.
           </p>

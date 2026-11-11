@@ -14,7 +14,7 @@ import {
 
 export default function InterviewTrackerProductPage() {
   useEffect(() => {
-    document.title = "Interview Tracker & Orchestration | Open Job Product";
+    document.title = "Interview Tracker & Orchestration | ZOBVERSE AI Product";
   }, []);
 
   return (

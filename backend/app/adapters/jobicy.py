@@ -42,6 +42,7 @@ class JobicyAdapter(JobSourceAdapter):
                         salary_min = item.get("annualSalaryMin")
                         salary_max = item.get("annualSalaryMax")
                         currency = item.get("salaryCurrency")
+                        posted_at = item.get("pubDate")
 
                         if not job_id or not title or not company or not job_url:
                             logger.debug("Skipping Jobicy listing with missing source fields")
@@ -59,10 +60,14 @@ class JobicyAdapter(JobSourceAdapter):
                             "salary_min": float(salary_min) if salary_min else None,
                             "salary_max": float(salary_max) if salary_max else None,
                             "salary_currency": currency,
+                            "salary_period": "Annual" if salary_min or salary_max else None,
+                            "experience": item.get("jobLevel"),
+                            "posted_at": posted_at,
                             "work_mode": "Remote",
                         })
         except Exception as e:
-            logger.warning(f"Live Jobicy API query failed: {e}. Returning no results.")
+            logger.warning("Live Jobicy API query failed: %s", e)
+            raise RuntimeError(f"Jobicy live search request failed: {e}") from e
 
         if not jobs:
             logger.info(f"No live Jobicy jobs returned for '{query}' in '{location}'.")
@@ -85,6 +90,9 @@ class JobicyAdapter(JobSourceAdapter):
             "salary_min": raw_job.get("salary_min"),
             "salary_max": raw_job.get("salary_max"),
             "salary_currency": raw_job.get("salary_currency"),
+            "salary_period": raw_job.get("salary_period"),
+            "experience": raw_job.get("experience"),
+            "posted_at": raw_job.get("posted_at"),
             "work_mode": raw_job.get("work_mode"),
         }
 

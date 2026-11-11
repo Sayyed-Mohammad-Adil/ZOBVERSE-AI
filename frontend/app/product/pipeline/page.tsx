@@ -14,7 +14,7 @@ import {
 
 export default function ApplicationPipelineProductPage() {
   useEffect(() => {
-    document.title = "Application Pipeline & Review Queue | Open Job Product";
+    document.title = "Application Pipeline & Review Queue | ZOBVERSE AI Product";
   }, []);
 
   return (

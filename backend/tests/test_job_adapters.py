@@ -2,6 +2,10 @@ import pytest
 
 from app.adapters.jobicy import JobicyAdapter
 from app.adapters.linkedin import LinkedInAdapter
+from app.adapters.manual_platforms import IndeedAdapter, NaukriAdapter
+from app.adapters.registry import DEFAULT_JOB_SOURCES, get_platforms_response
+from app.schemas.platform_job import PlatformJob
+from app.workers.job_discovery import canonicalize_job_url, run_discovery
 
 
 class MockResponse:
@@ -132,3 +136,70 @@ async def test_linkedin_search_surfaces_provider_errors(monkeypatch):
 
     with pytest.raises(RuntimeError, match="LinkedIn live search request failed"):
         await LinkedInAdapter().search_jobs("Software Engineer", "Remote")
+
+
+def test_platform_catalog_defaults_linkedin_and_marks_partner_boards_guided():
+    platforms = {platform["id"]: platform for platform in get_platforms_response()}
+
+    assert "linkedin" in DEFAULT_JOB_SOURCES
+    assert platforms["indeed"]["status"] == "guided_only"
+    assert platforms["naukri"]["status"] == "guided_only"
+    assert platforms["linkedin"]["capabilities"]["search"] is True
+    assert platforms["indeed"]["capabilities"]["automation_support"] is False
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("adapter", "platform"),
+    [(IndeedAdapter(), "Indeed"), (NaukriAdapter(), "Naukri")],
+)
+async def test_partner_boards_require_authorized_search_access(adapter, platform):
+    with pytest.raises(RuntimeError, match=f"{platform} does not expose a configured authorized"):
+        await adapter.search_jobs("Backend Engineer", "Remote")
+
+
+def test_canonicalize_job_url_removes_tracking_and_fragment():
+    assert canonicalize_job_url(
+        "https://www.example.com/jobs/123/?utm_source=feed&refId=abc#details"
+    ) == "https://example.com/jobs/123"
+
+
+def test_platform_job_normalizes_common_listing_fields():
+    job = PlatformJob(
+        external_job_id="indeed_123",
+        title="Backend Engineer",
+        company="Example",
+        url="https://example.com/jobs/123",
+        source="INDEED",
+        experience="3+ years",
+    )
+
+    assert job.experience == "3+ years"
+    assert job.description == ""
+    assert job.posted_at is None
+
+
+@pytest.mark.asyncio
+async def test_guided_only_platforms_return_warnings_not_live_search_errors():
+    result = await run_discovery(db=None, sources=["indeed"])
+
+    assert result["fetched"] == 0
+    assert result["errors"] == []
+    assert result["warnings"]
+    assert result["providers"][0]["status"] == "guided_only"
+
+
+@pytest.mark.asyncio
+async def test_guided_only_platform_returns_an_integration_warning():
+    result = await run_discovery(
+        db=None,
+        query="Backend Engineer",
+        location="Remote",
+        sources=["indeed"],
+        user_id=42,
+    )
+
+    assert result["fetched"] == 0
+    assert result["providers"][0]["source"] == "INDEED"
+    assert result["errors"] == []
+    assert "authorized Indeed search API" in result["warnings"][0]

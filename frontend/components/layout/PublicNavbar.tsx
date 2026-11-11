@@ -83,7 +83,7 @@ export function PublicNavbar() {
             </div>
           </div>
           <span className="font-black text-lg tracking-tight text-white">
-            Open <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400">Job</span>
+            ZOBVERSE AI
           </span>
         </Link>
 

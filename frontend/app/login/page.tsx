@@ -38,7 +38,7 @@ function LoginForm() {
     : "";
 
   useEffect(() => {
-    document.title = "Sign In | Open Job";
+    document.title = "Sign In | ZOBVERSE AI";
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -88,7 +88,7 @@ function LoginForm() {
       <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-30 mix-blend-screen">
         <Image
           src="/about-ai-core.jpg"
-          alt="Open Job AI Core"
+          alt="ZOBVERSE AI AI Core"
           fill
           priority
           className="object-cover object-center scale-105 animate-cyber-pulse"
@@ -114,12 +114,12 @@ function LoginForm() {
 
           <div className="flex items-center justify-center gap-2 mb-1">
             <span className="text-xs uppercase font-extrabold tracking-wider px-2.5 py-0.5 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 shadow-[0_0_10px_rgba(6,182,212,0.2)]">
-              Open Job Engine v2.0
+              ZOBVERSE AI Engine v2.0
             </span>
           </div>
 
           <h1 className="text-3xl font-black text-white tracking-tight">
-            Sign In to Open Job
+            Sign In to ZOBVERSE AI
           </h1>
           <p className="text-xs text-slate-400 max-w-xs mx-auto">
             Autonomous job intelligence, truthful matching &amp; verified execution
@@ -155,7 +155,7 @@ function LoginForm() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="candidate@openjob.ai"
+                    placeholder="candidate@example.com"
                     autoComplete="email"
                     className="w-full pl-10 pr-4 py-2.5 bg-slate-950/80 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all"
                   />

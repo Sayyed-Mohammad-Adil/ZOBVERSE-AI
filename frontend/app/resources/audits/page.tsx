@@ -14,7 +14,7 @@ import {
 
 export default function PipelineAuditTelemetryPage() {
   useEffect(() => {
-    document.title = "Pipeline & Audit Telemetry | Open Job Resources";
+    document.title = "Pipeline & Audit Telemetry | ZOBVERSE AI Resources";
   }, []);
 
   return (

@@ -29,7 +29,7 @@ import { OpenCodeLogo } from "@/components/ui/OpenCodeLogo";
 
 export default function PublicAboutPage() {
   useEffect(() => {
-    document.title = "About | Open Job & Open Code Ecosystem";
+    document.title = "About | ZOBVERSE AI & Open Code Ecosystem";
   }, []);
 
   return (
@@ -42,7 +42,7 @@ export default function PublicAboutPage() {
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <Image
             src="/about-ai-core.jpg"
-            alt="Open Job Cybernetic AI Humanoid Core"
+            alt="ZOBVERSE AI Cybernetic AI Humanoid Core"
             fill
             priority
             className="object-cover object-right md:object-[80%_center] opacity-40 mix-blend-screen scale-105 animate-cyber-pulse"
@@ -80,7 +80,7 @@ export default function PublicAboutPage() {
           </h1>
 
           <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-2xl">
-            Open Job replaces blind application spam with high-precision, factual career alignment.
+            ZOBVERSE AI replaces blind application spam with high-precision, factual career alignment.
             Engineered with zero hallucination constraints, local document vision powered by Light-OCR,
             and complete candidate sovereignty.
           </p>
@@ -111,14 +111,14 @@ export default function PublicAboutPage() {
               The Problem with Legacy Bots
             </div>
             <h2 className="text-3xl sm:text-4xl font-black text-white">
-              Why We Built Open Job
+              Why We Built ZOBVERSE AI
             </h2>
             <p className="text-sm text-slate-300 leading-relaxed">
               The modern hiring landscape is flooded with low-quality auto-apply bots that spam hundreds of resumes an hour.
               These tools fabricate skills, invent years of experience, trigger account bans on LinkedIn, and waste everyone&apos;s time.
             </p>
             <p className="text-sm text-slate-300 leading-relaxed">
-              We built <strong>Open Job</strong> under the <strong>Open Code</strong> initiative as an antidote to this madness:
+              We built <strong>ZOBVERSE AI</strong> under the <strong>Open Code</strong> initiative as an antidote to this madness:
               a high-fidelity, autonomous agent that acts like a private executive recruiter. It analyzes your genuine resume,
               evaluates real job requirements, computes explainable match ratings, and prepares tailored applications with 100% human-in-the-loop oversight.
             </p>
@@ -228,7 +228,7 @@ export default function PublicAboutPage() {
       <section className="py-20 border-t border-slate-900 bg-gradient-to-b from-slate-950 to-slate-900 text-center">
         <div className="max-w-3xl mx-auto px-4 space-y-6">
           <h3 className="text-3xl sm:text-4xl font-black text-white">
-            Ready to Experience Open Job?
+            Ready to Experience ZOBVERSE AI?
           </h3>
           <p className="text-sm text-slate-400">
             Join the movement towards honest, automated job applications.

@@ -101,11 +101,11 @@ const COMPARISON_ROWS = [
 
 const FAQS = [
   {
-    q: "Why is Open Job free and open source?",
+    q: "Why is ZOBVERSE AI free and open source?",
     a: "Corporate recruiting tech has automated resume filtering with opaque AI screeners, creating an asymmetric disadvantage for candidates. We believe every engineer and job seeker deserves an equal, honest, and sovereign AI advocate that never sells their data or charges predatory subscriptions.",
   },
   {
-    q: "Does Open Job have access to my credit card or bank details?",
+    q: "Does ZOBVERSE AI have access to my credit card or bank details?",
     a: "No. The core application runs locally on your machine with no billing required. If you choose to sponsor development, payments are handled externally via GitHub Sponsors.",
   },
   {
@@ -113,14 +113,14 @@ const FAQS = [
     a: "If you run local open-weights models through Ollama (like Llama 3 or Mistral), your cost is $0. If you configure commercial APIs (such as OpenAI GPT-4o or Google Gemini), you only pay those providers directly for actual tokens consumed, typically pennies per application.",
   },
   {
-    q: "Can I use Open Job without any coding experience?",
-    a: "Yes. Open Job provides a complete modern web dashboard with guided setup. You simply upload your resume, select your preferences, review matched jobs, and approve submissions with one click.",
+    q: "Can I use ZOBVERSE AI without any coding experience?",
+    a: "Yes. ZOBVERSE AI provides a complete modern web dashboard with guided setup. You simply upload your resume, select your preferences, review matched jobs, and approve submissions with one click.",
   },
 ];
 
 export default function PricingPage() {
   useEffect(() => {
-    document.title = "Pricing & Open Access | Open Job";
+    document.title = "Pricing & Open Access | ZOBVERSE AI";
   }, []);
 
   return (
@@ -133,7 +133,7 @@ export default function PricingPage() {
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <Image
             src="/bg-pricing.jpg"
-            alt="Open Job Transparent Economics"
+            alt="ZOBVERSE AI Transparent Economics"
             fill
             priority
             className="object-cover object-center opacity-35 mix-blend-screen scale-105"
@@ -152,7 +152,7 @@ export default function PricingPage() {
           </h1>
 
           <p className="max-w-2xl mx-auto text-base sm:text-lg text-slate-400 leading-relaxed">
-            Open Job is fundamentally open-source software. You own your data, your database,
+            ZOBVERSE AI is fundamentally open-source software. You own your data, your database,
             and your application pipeline. Choose the tier that matches your setup.
           </p>
         </div>

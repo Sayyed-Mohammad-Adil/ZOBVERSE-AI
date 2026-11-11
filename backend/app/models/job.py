@@ -18,6 +18,7 @@ class Job(Base):
     salary_max = Column(Float, nullable=True)
     salary_currency = Column(String, nullable=True)
     salary_period = Column(String, nullable=True)
+    experience = Column(String, nullable=True)
     description = Column(Text, nullable=False)
     requirements = Column(Text, nullable=True)
     responsibilities = Column(Text, nullable=True)

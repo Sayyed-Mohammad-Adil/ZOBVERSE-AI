@@ -198,7 +198,7 @@ export default function ConsolePage() {
           <Card className="glass-card hover:border-blue-400 transition-all cursor-pointer">
             <div className="p-4 space-y-1">
               <div className="flex items-center justify-between text-xs font-semibold text-slate-500">
-                <span>LinkedIn Easy-Apply</span>
+                <span>LinkedIn Session</span>
                 <Link2 className="w-4 h-4 text-blue-600" />
               </div>
               <div className="text-sm font-bold text-slate-900 truncate">
@@ -226,10 +226,10 @@ export default function ConsolePage() {
           </div>
           <div className="space-y-1 text-xs text-slate-600 leading-relaxed">
             <h3 className="font-bold text-slate-900 text-sm">
-              How Auto-Apply Execution Works in Open Job
+              How Auto-Apply Execution Works in ZOBVERSE AI
             </h3>
             <p>
-              1. <strong>Pipeline Discovery:</strong> The background worker discovers genuine job postings from LinkedIn, Jobicy, and integrated boards.
+              1. <strong>Pipeline Discovery:</strong> Live discovery uses enabled feeds; other selected boards open their official search pages.
             </p>
             <p>
               2. <strong>Deterministic Matching:</strong> The engine compares role requirements against your verified skills, experience, and salary preferences, computing a factual 0-100% score.

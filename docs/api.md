@@ -19,13 +19,15 @@ The backend exposes a versioned REST API under `/api/v1`.
   - `GET /resumes/ocr/status`: Check whether the local OCR executable is available.
   - Scanned PDFs use the local Light-OCR engine with the CPU provider when selectable-text extraction yields little or no text. PDF text extraction requires `pypdf` from `backend/requirements.txt`.
 - **Preferences (`/api/v1/preferences`)**:
-  - `GET /{user_id}`: Get salary, role, location, and automation preferences.
+  - `GET /{user_id}`: Get salary, role, location, selected job platforms, and automation preferences.
   - `PUT /{user_id}`: Update search criteria and daily limits (`daily_application_limit` supports 1–500).
 - **Job Discovery & Search (`/api/v1/jobs`, `/api/v1/search`)**:
   - `GET /`: Authenticated search of listings discovered for the signed-in candidate, with salary, location, skill, keyword, and minimum match-score filters. `limit` supports 1–500.
   - Match percentages reflect candidate-skill coverage of extracted job skills; they are not artificially raised to a minimum score.
-  - `POST /scan`: Authenticated live discovery request; fetches provider results before responding and associates listings with the requesting account (the standalone worker is not required for this request). Omitted skills default to the candidate profile, and `source` can restrict discovery to `linkedin` or `jobicy`.
-  - LinkedIn discovery uses its public job listings. A saved LinkedIn account connection is used for application actions, not authenticated job search.
+  - `POST /api/v1/workers/scan`: Authenticated live discovery request; accepts `platforms=linkedin,jobicy` and associates listings with the requesting account. If omitted, the candidate's saved platform selection is used.
+  - `GET /api/v1/settings/job-sources`: Return platform names and truthful search/application capabilities.
+  - `GET/PUT /api/v1/settings/job-sources/preferences`: Read or save the current candidate's platform selections.
+  - LinkedIn uses its existing public listing search; Jobicy uses its public jobs API. Indeed, Naukri.com, and other listed boards are guided-only until an authorized search API/feed is configured. The app does not scrape them.
   - Previously stored listings without an account association remain hidden until that candidate's scan discovers them.
   - Search results, listing details, skill summaries, worker logs, and analytics are restricted to the authenticated account.
 - **Matching Engine (`/api/v1/matching`)**:
@@ -34,8 +36,8 @@ The backend exposes a versioned REST API under `/api/v1`.
   - `POST /check`: 5-tier duplicate check against canonical URLs, hashes, and previous applications.
 - **Applications (`/api/v1/applications`)**:
   - `GET /{user_id}`: List user applications pipeline.
-  - `POST /prepare`: Auto-select CV, draft cover letter, create in `READY` state.
-  - `PUT /{app_id}`: Advance status state machine (`READY` → `APPLIED` → `INTERVIEW` → `OFFER` → `REJECTED`).
+  - `POST /prepare`: Select a resume, draft a cover letter, and create/update a `READY` record with its source and official application URL. This does not submit the application.
+  - `PUT /{app_id}`: Record status updates. Setting `APPLIED` requires `submission_confirmed: true` after candidate confirmation on the official platform.
   - `POST /import-csv`: Import historical applications to seed duplicate prevention.
 - **Interviews (`/api/v1/interviews`)**:
   - `GET /{user_id}`, `POST /{user_id}`, `PUT /{id}`, `DELETE /{id}`: Track interview rounds, dates, notes, and feedback.
@@ -51,5 +53,5 @@ The backend exposes a versioned REST API under `/api/v1`.
   - `GET /{user_id}`: Pipeline metrics, source breakdown, and skill gap intelligence.
 - **Settings & Privacy (`/api/v1/settings`)**:
   - `GET /ai/test-ollama`, `GET /ai/test-laya`: Connectivity health tests.
-  - `GET /sources`: Adapter capabilities and automation permissions.
+  - `GET /job-sources`: Platform search and application capabilities.
   - `GET /privacy/export/{user_id}`: Full GDPR JSON export of candidate data.

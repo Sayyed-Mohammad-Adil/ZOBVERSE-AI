@@ -26,7 +26,7 @@ import { OpenCodeLogo } from "@/components/ui/OpenCodeLogo";
 
 export default function FeaturesPage() {
   useEffect(() => {
-    document.title = "Features & Autonomous Capabilities | Open Job";
+    document.title = "Features & Autonomous Capabilities | ZOBVERSE AI";
   }, []);
 
   const [activeTab, setActiveTab] = useState<"vision" | "truth" | "reasoning" | "stealth">("vision");
@@ -41,7 +41,7 @@ export default function FeaturesPage() {
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <Image
             src="/bg-features.jpg"
-            alt="Open Job Features Neural Vision"
+            alt="ZOBVERSE AI Features Neural Vision"
             fill
             priority
             className="object-cover object-center opacity-35 mix-blend-screen scale-105"
@@ -60,7 +60,7 @@ export default function FeaturesPage() {
           </h1>
 
           <p className="max-w-3xl mx-auto text-base sm:text-lg text-slate-400 leading-relaxed">
-            Open Job replaces blind spam scripts with deep document vision, strict anti-fabrication
+            ZOBVERSE AI replaces blind spam scripts with deep document vision, strict anti-fabrication
             verification, humanized stealth dispatch, and complete telemetry transparency.
           </p>
 
@@ -138,7 +138,7 @@ export default function FeaturesPage() {
                 </h4>
                 <p className="text-sm text-slate-300 leading-relaxed">
                   Traditional PyPDF2/PDFMiner scrapers break on multi-column layouts, tables, icon-decorated skills, and custom typography.
-                  Open Job embeds <strong>Light-OCR</strong>, a high-speed computer vision model that visually dissects resumes page by page.
+                  ZOBVERSE AI embeds <strong>Light-OCR</strong>, a high-speed computer vision model that visually dissects resumes page by page.
                 </p>
 
                 <div className="space-y-3 pt-2">
@@ -203,7 +203,7 @@ export default function FeaturesPage() {
                 </h4>
                 <p className="text-sm text-slate-300 leading-relaxed">
                   Generic AI job bots invent fake dates, embellish company titles, or lie about years of experience to force high ATS scores.
-                  This leads to immediate disqualification and blacklisting. Open Job enforces a cryptographic <strong>Rule 2</strong> protocol.
+                  This leads to immediate disqualification and blacklisting. ZOBVERSE AI enforces a cryptographic <strong>Rule 2</strong> protocol.
                 </p>
 
                 <div className="space-y-3 pt-2">
@@ -246,7 +246,7 @@ export default function FeaturesPage() {
                 </div>
                 <div className="p-3.5 rounded-xl bg-emerald-950/40 border border-emerald-900/60 text-xs space-y-1.5">
                   <div className="font-bold text-emerald-400 flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> Open Job Rule 2 Behavior (Truthful)
+                    <CheckCircle2 className="w-3.5 h-3.5" /> ZOBVERSE AI Rule 2 Behavior (Truthful)
                   </div>
                   <p className="text-slate-300 text-[11px] leading-relaxed">
                     Accurately presents your 2 years of Docker &amp; CI/CD orchestration, highlighting rapid architectural ramp-up without inventing claims. Your professional integrity is protected.
@@ -266,7 +266,7 @@ export default function FeaturesPage() {
                   Explainable Fit Matrix: No Black-Box Percentages
                 </h4>
                 <p className="text-sm text-slate-300 leading-relaxed">
-                  Instead of giving you an arbitrary 94% score with no explanation, Open Job breaks down
+                  Instead of giving you an arbitrary 94% score with no explanation, ZOBVERSE AI breaks down
                   job descriptions into multi-dimensional compatibility vectors.
                 </p>
 
@@ -316,7 +316,7 @@ export default function FeaturesPage() {
                 </h4>
                 <p className="text-sm text-slate-300 leading-relaxed">
                   Basic bots get flagged by Cloudflare, reCAPTCHA, and LinkedIn anti-scraping within minutes.
-                  Open Job utilizes stealth browser profiles with natural human jitter, authentic user-agent rotations, and local cookie persistence.
+                  ZOBVERSE AI utilizes stealth browser profiles with natural human jitter, authentic user-agent rotations, and local cookie persistence.
                 </p>
 
                 <div className="space-y-3 pt-2">
@@ -369,7 +369,7 @@ export default function FeaturesPage() {
             <h2 className="text-xs font-mono uppercase tracking-widest text-cyan-400">
               Honest Engineering vs Blind Automation
             </h2>
-            <h3 className="text-3xl font-black text-white">How Open Job Outperforms Generic Bots</h3>
+            <h3 className="text-3xl font-black text-white">How ZOBVERSE AI Outperforms Generic Bots</h3>
           </div>
 
           <div className="bg-slate-900/60 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl">
@@ -379,7 +379,7 @@ export default function FeaturesPage() {
                   <tr>
                     <th className="py-4 px-6 font-bold">Feature / Metric</th>
                     <th className="py-4 px-6 text-slate-400">Generic Auto-Applier Bots</th>
-                    <th className="py-4 px-6 text-cyan-300 font-bold bg-cyan-950/30">Open Job Autonomous Engine</th>
+                    <th className="py-4 px-6 text-cyan-300 font-bold bg-cyan-950/30">ZOBVERSE AI Autonomous Engine</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/80 text-slate-300">

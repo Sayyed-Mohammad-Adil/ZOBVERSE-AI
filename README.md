@@ -1,4 +1,6 @@
-# Open Job
+# ZOBVERSE AI
+
+**Find. Apply. Get Hired.**
 
 [![Next.js 16](https://img.shields.io/badge/Next.js-16.3.8-black?logo=next.js)](https://nextjs.org/)
 [![React 19](https://img.shields.io/badge/React-19.2.8-61DAFB?logo=react)](https://react.dev/)
@@ -11,9 +13,9 @@
 [![GSAP](https://img.shields.io/badge/GSAP-Luxury_Motion-88CE02?logo=greensock)](https://gsap.com/)
 [![Rule 2 Compliant](https://img.shields.io/badge/Policy-Zero_Fabrication-emerald)](https://github.com/)
 
-**Open Job** is a greenfield, production-grade, autonomous AI career assistant and job application platform. Built from first principles with **Next.js 16 (Turbopack)**, **FastAPI**, **PostgreSQL with pgvector**, **@arcships/light-ocr**, **Laya**, and **Ollama**.
+**ZOBVERSE AI** is a greenfield, production-grade, autonomous AI career assistant and job application platform. Built from first principles with **Next.js 16 (Turbopack)**, **FastAPI**, **PostgreSQL with pgvector**, **@arcships/light-ocr**, **Laya**, and **Ollama**.
 
-Open Job is strictly optimized for **Application Quality and Candidate Reputation**, not indiscriminate spam. It enforces the **Non-Negotiable Rule 2: Zero Fabrication of Candidate Details**, explainable deterministic matching, local offline document vision, and human-in-the-loop review.
+ZOBVERSE AI is strictly optimized for **Application Quality and Candidate Reputation**, not indiscriminate spam. It enforces the **Non-Negotiable Rule 2: Zero Fabrication of Candidate Details**, explainable deterministic matching, local offline document vision, and human-in-the-loop review.
 
 ---
 
@@ -45,7 +47,7 @@ Open Job is strictly optimized for **Application Quality and Candidate Reputatio
 
 ## 1. Core Philosophy & Non-Negotiables
 
-Mass indiscriminate job application bots destroy candidate reputations, trigger portal anti-bot blocks, and get candidates permanently blacklisted. Open Job enforces four non-negotiable operational tenets:
+Mass indiscriminate job application bots destroy candidate reputations, trigger portal anti-bot blocks, and get candidates permanently blacklisted. ZOBVERSE AI enforces four non-negotiable operational tenets:
 
 1. **Rule 2: Zero Candidate Fabrication**: The platform will never invent years of experience, hallucinate skills, falsify visa requirements, or fabricate references in cover letters or screening forms. If a fact is unverified in the Candidate Brain, the application is paused and routed to the Human-in-the-Loop Review Queue.
 2. **Deterministic & Semantic Transparency**: No opaque black-box "match scores". Every role evaluated displays an itemized 0–100% score broken down by Required Skills, Years of Experience, Work Mode/Location, Compensation Range, and Role Seniority.
@@ -58,7 +60,7 @@ Mass indiscriminate job application bots destroy candidate reputations, trigger 
 
 ```text
                                   ┌─────────────────────────────────────────┐
-                                  │      Open Job Web Interface (UI)        │
+                                  │      ZOBVERSE AI Web Interface (UI)        │
                                   │   Next.js 16 (App Router) • React 19    │
                                   │   GSAP Motion • Lucide • Tailwind CSS   │
                                   └────────────────────┬────────────────────┘
@@ -67,7 +69,7 @@ Mass indiscriminate job application bots destroy candidate reputations, trigger 
                                                        │
                                                        ▼
                                   ┌─────────────────────────────────────────┐
-                                  │       Open Job API Gateway (FastAPI)    │
+                                  │       ZOBVERSE AI API Gateway (FastAPI)    │
                                   │  Python 3.12+ • Async SQLAlchemy • Pydantic v2
                                   └────┬───────────────┬────────────────┬───┘
                                        │               │                │
@@ -85,9 +87,9 @@ Mass indiscriminate job application bots destroy candidate reputations, trigger 
                                                                                                   ▼
                                                                                       ┌────────────────────────┐
                                                                                       │ PostgreSQL Worker Loop │
-                                                                                      │  Continuous Scraper    │
+                                                                                      │  Authorized Discovery  │
                                                                                       │  Deduplication Engine  │
-                                                                                      │  Matching & Submitter  │
+                                                                                      │  Match & Prepare Queue │
                                                                                       └───────────┬────────────┘
                                                                                                   │
                                                                                      Assisted Headless Session
@@ -111,7 +113,7 @@ Mass indiscriminate job application bots destroy candidate reputations, trigger 
 
 ### 3.2 Light-OCR Document Vision Core
 - Integrated with [`@arcships/light-ocr`](https://github.com/arcships/light-ocr) for ultra-fast, local, offline OCR.
-- **Scanned PDF Recovery**: If an uploaded PDF contains non-selectable bitmap text, Open Job invokes PDFium and PP-OCRv6 Small to extract all textual lines, bounding boxes, and confidence scores locally.
+- **Scanned PDF Recovery**: If an uploaded PDF contains non-selectable bitmap text, ZOBVERSE AI invokes PDFium and PP-OCRv6 Small to extract all textual lines, bounding boxes, and confidence scores locally.
 - **Image CV Support**: Direct parsing of PNG, JPEG, JPG, WebP, BMP, and TIFF files.
 - **Hardware Acceleration**: Automatically selects WebGPU or CPU execution flavors with zero cloud API keys or network latency.
 
@@ -123,57 +125,54 @@ Every evaluated job produces a transparent, deterministic match score (0–100%)
 - **Location & Work Mode (10%)**: Verification of Remote, Hybrid, or On-site compliance with user preferences.
 - **Compensation Match (10%)**: Verification against candidate minimum base salary requirements.
 
-### 3.4 5-Tier Duplicate Detection Shield
-Prevents duplicate applications across different platforms and syndication feeds:
-1. **Platform External ID**: Exact matching against provider IDs (e.g., LinkedIn Job ID `39812491`).
-2. **Canonical URL Normalization**: Strips tracking parameters (`utm_source`, `refId`, `trackingId`) and verifies canonical URLs.
-3. **SHA-256 Description Fingerprinting**: Detects identical postings republished under different job titles or IDs.
-4. **Fuzzy Levenshtein & Semantic Hash**: Compares Company Name + Job Title + Location to detect cross-board duplicates.
-5. **Historical Application Index**: Prevents re-applying to positions applied to within the last 180 days.
+### 3.4 Listing & Application Duplicate Protection
+Prevents duplicate listings by checking provider IDs and canonicalized job URLs
+(known tracking parameters and fragments are removed). Application preparation
+also checks for an existing application record for the same candidate and job.
+Listings with different URLs are not claimed as duplicates unless an exact
+provider ID or URL match is available.
 
-### 3.5 10-Stage Application State Machine
-Applications transition through a deterministic state machine with complete audit logs:
+### 3.5 Candidate-Confirmed Application Tracking
+The current workflow prepares applications for candidate review and never
+reports a provider submission as successful. Application statuses are:
 ```text
-DISCOVERED ──► QUALIFIED ──► REVIEW (if approval needed) ──► APPROVED
-     │              │                                           │
-     ▼              ▼                                           ▼
-  SKIPPED        REJECTED                                   PREPARING
-                                                                │
-                                                                ▼
-                                                        ACTION_REQUIRED (if CAPTCHA)
-                                                                │
-                                                                ▼
-                                                             APPLIED
-                                                                │
-                                                       ┌────────┴────────┐
-                                                       ▼                 ▼
-                                                   INTERVIEW           OFFER
+READY ──► APPLIED ──► INTERVIEW ──► OFFER
+   ├────► REJECTED
+   └────► SKIPPED
 ```
+`APPLIED` is a candidate-confirmed status; no current board adapter submits
+applications or confirms submission automatically.
 
 ### 3.6 Human-in-the-Loop Review Queue
-Applications are automatically routed to [`/dashboard/review`](http://localhost:3000/dashboard/review) whenever:
-- Job posting salary is undisclosed or ambiguous.
-- Company requires manual external portal submission (Workday, Taleo, Greenhouse).
-- A screening question confidence score falls below 85%.
-- Anti-bot verification (CAPTCHA, Cloudflare challenge, or 2FA login) is encountered.
-- 1-click batch actions allow approving, skipping, or customizing answers.
+Prepared applications are stored in `READY` status and can be reviewed before
+the candidate opens the official application page. Unknown screening answers
+require user input. Authentication challenges, CAPTCHAs, and anti-bot controls
+are not bypassed.
 
-### 3.7 Verified Question Bank with Attribution
+### 3.7 Multi-Platform Job Discovery
+LinkedIn and Jobicy currently have live search adapters. Indeed, Naukri.com,
+Internshala, Foundit, Glassdoor, Wellfound, Shine, and ZipRecruiter are
+selectable as guided official-site workflows. Their automated search remains
+disabled until an authorized provider API/feed is configured; the application
+does not scrape those sites or bypass their controls. Platform selection is
+stored per candidate, with LinkedIn enabled by default.
+
+### 3.8 Verified Question Bank with Attribution
 - Common screening questions (work authorization, visa sponsorship, notice period, salary expectations, years with specific technologies) are cataloged.
 - Every answer includes a **Truthfulness Attribution Tag** (e.g., `Derived from CV: Backend_2026.pdf` or `User Verified`).
-- If an employer asks an unverified question, Open Job flags `USER INPUT REQUIRED` rather than guessing.
+- If an employer asks an unverified question, ZOBVERSE AI flags `USER INPUT REQUIRED` rather than guessing.
 
-### 3.8 Interview & Compensation Offer Hub
+### 3.9 Interview & Compensation Offer Hub
 - **Interview Tracker** ([`/dashboard/interviews`](http://localhost:3000/dashboard/interviews)): Log rounds (Recruiter Screen, Technical Coding, System Design, Behavioral), interviewer names, schedule timestamps, round notes, and feedback.
 - **Offer Comparator** ([`/dashboard/offers`](http://localhost:3000/dashboard/offers)): Compare total compensation packages across competing offers, including Base Salary, Bonus, Equity (RSUs/Options), Currency, and Work Flexibility.
 
-### 3.9 Reporting & Funnel Analytics Dashboard
+### 3.10 Reporting & Funnel Analytics Dashboard
 - **Funnel Attrition Visualizer** ([`/dashboard/reporting`](http://localhost:3000/dashboard/reporting)): View conversion drop-offs from raw discovery → qualification → submission → recruiter screen → written offer.
 - **Weekly Application Velocity & Cadence**: Daily bar chart measuring submission velocity against configured safety limits (e.g., 10 applications/day) with anti-detection pacing indicators.
 - **Platform Performance Matrix**: Conversion rates, average response times, and interview frequencies across LinkedIn, Jobicy, RemoteOK, and direct company ATS portals.
 - **Export Engine**: 1-click export of complete application histories and telemetry to CSV and JSON formats.
 
-### 3.10 GSAP Luxury Boot Sequence & Top Navbar Center
+### 3.11 GSAP Luxury Boot Sequence & Top Navbar Center
 - **GSAP Luxury Loader**: A sleek 60fps first-time splash screen built with GSAP timelines, glowing ambient gradient portals, dual rotating neon rings, and an animated initialization telemetry ticker (`Booting Engine...` → `Calibrating Light-OCR...` → `Ready`). Session-gated via `sessionStorage`.
 - **Top Navbar Notification Center**: Replaced the sidebar notification link with an interactive popover in the top navbar showing unread counts, recent alerts, and quick "Mark all read" controls.
 - **Dedicated Real-Time Terminal**: Accessible via [`/dashboard/console`](http://localhost:3000/dashboard/console) with Server-Sent Events (SSE) streaming live background worker daemon activity.
@@ -201,7 +200,7 @@ Applications are automatically routed to [`/dashboard/review`](http://localhost:
 ## 5. Database Architecture & Worker Queue
 
 ### PostgreSQL Row-Level Worker Queue (No Redis)
-Instead of adding Redis or Celery dependencies, Open Job utilizes PostgreSQL's atomic row-level locking:
+Instead of adding Redis or Celery dependencies, ZOBVERSE AI utilizes PostgreSQL's atomic row-level locking:
 
 ```sql
 -- Worker atomic lock query pattern
@@ -246,6 +245,9 @@ This guarantees:
 - `PUT /api/v1/profile/{user_id}`: Update candidate details and verified skills.
 - `GET /api/v1/preferences/{user_id}`: Retrieve search parameters and automation modes.
 - `PUT /api/v1/preferences/{user_id}`: Update daily limits, execution mode, and salary targets.
+- `GET /api/v1/settings/job-sources`: List platform capabilities and availability.
+- `GET /api/v1/settings/job-sources/preferences`: Read the authenticated candidate's selected platforms.
+- `PUT /api/v1/settings/job-sources/preferences`: Save selected platform IDs for the authenticated candidate.
 
 ### Resumes & Light-OCR Vision (`/api/v1/resumes`)
 - `POST /api/v1/resumes/?user_id={id}`: Upload CV (PDF, DOCX, TXT, PNG, JPG, WebP). Triggers automated text extraction and Laya entity parsing.
@@ -257,20 +259,21 @@ This guarantees:
 
 ### Job Discovery & Matching (`/api/v1/jobs`, `/api/v1/matching`)
 - `GET /api/v1/jobs/`: List discovered opportunities with filter criteria.
-- `POST /api/v1/workers/scan`: Trigger immediate multi-board live job scan.
+- `POST /api/v1/workers/scan`: Search selected live platforms and report guided-only platform availability.
 - `POST /api/v1/matching/evaluate`: Compute explainable 5-factor match score for a job.
 
 ### Application Pipeline & Review Queue (`/api/v1/applications`, `/api/v1/review`)
 - `GET /api/v1/applications/{user_id}`: List active applications and states.
-- `POST /api/v1/applications/apply/{job_id}`: Prepare or submit application.
+- `POST /api/v1/applications/prepare`: Prepare an application package; it does not submit to a job board.
+- `PUT /api/v1/applications/{application_id}`: Update tracking status; `APPLIED` requires candidate confirmation.
 - `POST /api/v1/applications/import-csv`: Bulk import historical job applications from CSV.
 - `GET /api/v1/review/{user_id}`: List pending human review approval items.
-- `POST /api/v1/review/{review_id}/approve`: Approve proposed application answers and queue for submission.
+- `POST /api/v1/review/{review_id}/approve`: Approve proposed answers for candidate review.
 - `POST /api/v1/review/{review_id}/reject`: Skip or dismiss application.
 
 ### Telemetry & Reporting (`/api/v1/analytics`, `/api/v1/notifications`)
 - `GET /api/v1/analytics/{user_id}`: Ingested totals, pipeline counts, match distributions.
-- `GET /api/v1/notifications/{user_id}`: Real-time candidate alerts and submission confirmations.
+- `GET /api/v1/notifications/{user_id}`: Candidate notifications and application status updates.
 - `PUT /api/v1/notifications/{id}/read`: Mark notification as read.
 - `GET /api/v1/settings/stream/logs`: Server-Sent Events (SSE) stream for live agent execution console.
 
@@ -278,27 +281,37 @@ This guarantees:
 
 ## 7. Quick Start: Docker Compose
 
-The entire Open Job ecosystem can be launched with Docker Compose:
+Docker Compose starts its own PostgreSQL container and volume. If you already
+run PostgreSQL in a separate container on host port `5432`, use the manual
+development setup below instead; do not assume Compose's database is the same
+database as your existing container.
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/arcships/auto-job-applier.git
-cd auto-job-applier/Open-Job
+git clone https://github.com/Sayyed-Mohammad-Adil/ZOBVERSE-AI.git
+cd ZOBVERSE-AI
 
-# 2. Configure environment file
-cp .env.example .env
+# 2. Configure deployment secrets in an untracked .env file before starting.
 
-# 3. Build and launch all containers
+# 3. Build and launch all containers, including the Compose PostgreSQL service
 docker compose up -d --build
 
-# 4. Apply database migrations
+# 4. Apply migrations to the Compose database
 docker compose exec backend alembic upgrade head
+
+# 5. Confirm the schema is current
+docker compose exec backend alembic current
 ```
 
+The browser calls the same-origin `/api/v1` route; Next.js proxies API requests
+to the backend service. For local manual development, the proxy defaults to
+`http://127.0.0.1:8000`; set `API_PROXY_URL` to the backend origin when it is
+hosted elsewhere.
+
 ### Deployed Services:
-- **Open Job Web UI**: [http://localhost:3000](http://localhost:3000)
+- **ZOBVERSE AI Web UI**: [http://localhost:3000](http://localhost:3000)
 - **FastAPI Interactive Docs (Swagger)**: [http://localhost:8000/docs](http://localhost:8000/docs)
-- **PostgreSQL Database**: `localhost:5432` (`openjob`)
+- **PostgreSQL Database**: `localhost:5432` (`job_agent`)
 - **Ollama Local LLM**: `localhost:11434`
 
 ---
@@ -307,8 +320,22 @@ docker compose exec backend alembic upgrade head
 
 ### 8.1 Backend Setup (Python 3.12+)
 
+For an existing PostgreSQL container publishing port `5432`, run the backend
+and worker on the host and point `DATABASE_URL` at that published port. Use the
+same database name and credentials that were configured for the PostgreSQL
+container. Put this setting in `backend/.env` (the backend loads `.env` from
+its working directory) or export it in the shell used to run Alembic, the API,
+and the worker. For example:
+
+```dotenv
+DATABASE_URL=postgresql+asyncpg://<user>:<password>@localhost:5432/<database>
+```
+
+Do not run a second PostgreSQL container from Compose if you intend to use this
+existing database.
+
 ```bash
-cd Open-Job/backend
+cd backend
 
 # 1. Create and activate virtual environment
 python3 -m venv venv
@@ -319,10 +346,13 @@ pip install --upgrade pip
 pip install -r requirements.txt
 pip install laya
 
-# 3. Apply database migrations
+# 3. Apply migrations to the database selected by DATABASE_URL
 alembic upgrade head
 
-# 4. Start the FastAPI development server
+# 4. Verify the migration revision; it should be at head
+alembic current
+
+# 5. Start the FastAPI development server
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
@@ -331,15 +361,19 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 In a separate terminal:
 
 ```bash
-cd Open-Job/backend
+cd backend
 source venv/bin/activate
 python -m app.workers.main
 ```
 
+Always run `alembic upgrade head` before starting the API or worker after
+updating the code. The worker and API must use the same `DATABASE_URL` as the
+migration command.
+
 ### 8.3 Frontend Setup (Node.js 22+)
 
 ```bash
-cd Open-Job/frontend
+cd frontend
 
 # 1. Install Node dependencies
 npm install
@@ -352,16 +386,19 @@ npm run build
 npm start
 ```
 
-### 8.4 Default Demo Credentials
+### 8.4 Sign In
 
-- **Email**: `candidate@openjob.ai` (or `candidate@autojob.ai`)
-- **Password**: `password123` (or `candidate123`)
+Create an account through the registration page or sign in with your registered account. No default demo credentials are configured.
 
 ---
 
 ## 9. Environment Configuration Reference
 
-The platform is configured via the `.env` file located in the root or `Open-Job/` directory:
+Docker Compose reads its interpolation values from an untracked `.env` file in
+the repository root. For manual backend development, put backend settings in
+`backend/.env` or export them in the shell; the backend is started from the
+`backend/` directory. The database URL must point to the PostgreSQL instance
+you intend to use.
 
 ```dotenv
 # ==========================================
@@ -369,15 +406,15 @@ The platform is configured via the `.env` file located in the root or `Open-Job/
 # ==========================================
 POSTGRES_SERVER=localhost
 POSTGRES_PORT=5432
-POSTGRES_DB=aijobagent
+POSTGRES_DB=job_agent
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=postgres
-DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/aijobagent
+DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/job_agent
 
 # ==========================================
 # Security & JWT Tokens
 # ==========================================
-SECRET_KEY=openjob_super_secret_production_key_change_in_production
+JWT_SECRET=<generate-a-strong-random-secret>
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=1440
 
@@ -401,65 +438,55 @@ PLAYWRIGHT_SLOW_MO_MS=100
 MAX_DAILY_APPLICATIONS=10
 
 # ==========================================
-# Frontend Configuration
+# Frontend API proxy (optional; defaults to http://127.0.0.1:8000)
 # ==========================================
-NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+API_PROXY_URL=http://127.0.0.1:8000
 ```
 
 ---
 
 ## 10. Testing, Quality Bar & Verification
 
-Open Job adheres to rigorous quality standards and includes end-to-end automated test suites.
+ZOBVERSE AI adheres to rigorous quality standards and includes end-to-end automated test suites.
 
 ### Running Backend Tests
-Execute the full test suite verifying authentication, profile creation, CV parsing, matching algorithms, duplicate detection, review queue workflows, and state transitions:
+Run the backend test suite. Configure and migrate a disposable test database before running database integration tests:
 
 ```bash
-cd Open-Job/backend
-./venv/bin/pytest -v
-```
-
-**Results**:
-- 12 integration and unit tests passing in ~35 seconds (`100% pass rate`).
-- Zero collection errors, zero unhandled promise rejections.
-
-### Running Type-Checker Validation
-Validate static type soundness using Pyright across the backend:
-
-```bash
-cd Open-Job
-npx pyright Open-Job/backend/app/resume/parser.py
-# Output: 0 errors, 0 warnings, 0 informations
+cd backend
+./venv/bin/python -m pytest -v
 ```
 
 ### Running Frontend Production Build
-Validate all 22 Next.js routes, server actions, and GSAP motion components:
+Compile and type-check the frontend:
 
 ```bash
-cd Open-Job/frontend
+cd frontend
 npm run build
 ```
 
-**Output**:
-```text
-✓ Compiled successfully in 1821ms
-✓ Finished TypeScript in 2.9s
-✓ Generating static pages using 11 workers (22/22)
-○ /
-○ /dashboard
-○ /dashboard/about
-○ /dashboard/reporting
-○ /dashboard/applications
-○ /dashboard/console
-○ /dashboard/interviews
-○ /dashboard/offers
-○ /dashboard/review
-○ /dashboard/resumes
-○ /dashboard/search
-○ /dashboard/settings
-...
+### Database migration troubleshooting
+
+If the worker reports an error such as
+`column candidate_preferences.job_sources does not exist`, the database used
+by the worker is behind the application code. Stop the worker, then from the
+repository root run the migration with the same environment and `.env` file
+used by the backend:
+
+```bash
+cd backend
+source venv/bin/activate
+alembic current
+alembic upgrade head
+alembic current
 ```
+
+The final command should report the current head revision. Restart the API and
+worker afterward. A migration run against a different `DATABASE_URL` will not
+fix the worker's database. To check a standalone PostgreSQL container, first
+identify its name with `docker ps`, then inspect its database with
+`docker exec -it <postgres-container> psql -U <user> -d <database>`. Avoid
+printing or sharing database passwords when troubleshooting.
 
 ---
 

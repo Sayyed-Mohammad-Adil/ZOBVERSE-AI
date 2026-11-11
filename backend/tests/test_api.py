@@ -6,7 +6,7 @@ client = TestClient(app)
 def test_read_main():
     response = client.get("/")
     assert response.status_code == 200
-    assert response.json() == {"message": "AI Job Agent API v1"}
+    assert response.json() == {"message": "ZOBVERSE AI API v1"}
 
 def test_auth_login_invalid():
     response = client.post(

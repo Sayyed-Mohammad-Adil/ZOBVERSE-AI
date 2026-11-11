@@ -7,7 +7,7 @@ import { PublicFooter } from "@/components/layout/PublicFooter";
 
 export default function Home() {
   useEffect(() => {
-    document.title = "Open Job — Autonomous AI Job Search & Application Engine";
+    document.title = "ZOBVERSE AI — Find. Apply. Get Hired.";
   }, []);
 
   return (

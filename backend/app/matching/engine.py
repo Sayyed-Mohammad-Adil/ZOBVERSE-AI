@@ -40,6 +40,7 @@ Title: {job.title}
 Company: {job.company}
 Location: {job.location or "Not provided"}
 Salary: {job.salary_min if job.salary_min is not None else "Not provided"} to {job.salary_max if job.salary_max is not None else "Not provided"} {job.salary_currency or ""} {job.salary_period or ""}
+Experience level: {getattr(job, "experience", None) or "Not provided"}
 Description: {(job.description or "Not provided")[:3000]}
 Requirements: {(job.requirements or "Not provided")[:1500]}
 """
@@ -124,7 +125,20 @@ Requirements: {(job.requirements or "Not provided")[:1500]}
         # 2. Experience Matching
         candidate_exp = profile.total_experience_years or 0
         exp_score = 100
-        if "senior" in job.title.lower() or "lead" in job.title.lower():
+        required_years = re.search(
+            r"(\d+(?:\.\d+)?)\s*\+?\s*(?:years?|yrs?)",
+            getattr(job, "experience", None) or "",
+            re.IGNORECASE,
+        )
+        if required_years:
+            minimum_experience = float(required_years.group(1))
+            if candidate_exp < minimum_experience:
+                exp_score = 50
+                concerns.append(
+                    f"Job lists {minimum_experience:g}+ years of experience; "
+                    f"candidate has {candidate_exp:g} years."
+                )
+        elif "senior" in job.title.lower() or "lead" in job.title.lower():
             if candidate_exp < 4:
                 exp_score = 60
                 concerns.append(f"Job targets senior level; candidate has {candidate_exp} years experience.")

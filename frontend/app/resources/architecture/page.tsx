@@ -65,7 +65,7 @@ const ARCH_LAYERS = [
 
 export default function SystemArchitecturePage() {
   useEffect(() => {
-    document.title = "System Architecture & Engine Internals | Open Job Resources";
+    document.title = "System Architecture & Engine Internals | ZOBVERSE AI Resources";
   }, []);
 
   return (
@@ -101,7 +101,7 @@ export default function SystemArchitecturePage() {
           </h1>
 
           <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-2xl">
-            A comprehensive breakdown of how Open Job couples local computer vision, anti-fabrication policy engines, asynchronous background daemons, and sovereign data storage.
+            A comprehensive breakdown of how ZOBVERSE AI couples local computer vision, anti-fabrication policy engines, asynchronous background daemons, and sovereign data storage.
           </p>
 
           <div className="flex flex-wrap items-center gap-4 pt-4">
@@ -129,7 +129,7 @@ export default function SystemArchitecturePage() {
             Modular Subsystem Pipeline
           </div>
           <h2 className="text-3xl sm:text-4xl font-black text-white">
-            5 Distinct Layers of the Open Job Engine
+            5 Distinct Layers of the ZOBVERSE AI Engine
           </h2>
           <p className="text-sm text-slate-400">
             Each layer operates with a strict separation of concerns, ensuring local privacy, zero cloud exposure, and verifiable truth.
@@ -196,7 +196,7 @@ export default function SystemArchitecturePage() {
         <div className="p-8 sm:p-12 rounded-3xl bg-gradient-to-r from-blue-950/40 via-cyan-950/30 to-indigo-950/40 border border-cyan-500/30 text-center space-y-4">
           <h3 className="text-2xl font-black text-white">Deploy on Your Infrastructure</h3>
           <p className="text-sm text-slate-300 max-w-xl mx-auto leading-relaxed">
-            Run Open Job as a sovereign AI application with Docker Compose or standalone Python virtual environments.
+            Run ZOBVERSE AI as a sovereign AI application with Docker Compose or standalone Python virtual environments.
           </p>
           <div className="pt-2 flex justify-center gap-3">
             <Link

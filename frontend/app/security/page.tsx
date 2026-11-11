@@ -41,7 +41,7 @@ const SECURITY_FEATURES = [
     icon: EyeOff,
     color: "from-purple-500 to-pink-600",
     title: "Zero Telemetry Architecture",
-    desc: "Open Job does not phone home. No analytics SDKs, no crash reporters, no usage logging to external servers. Your career data stays your own.",
+    desc: "ZOBVERSE AI does not phone home. No analytics SDKs, no crash reporters, no usage logging to external servers. Your career data stays your own.",
   },
   {
     icon: KeyRound,
@@ -71,7 +71,7 @@ const SECURITY_FEATURES = [
 
 export default function SecurityPage() {
   useEffect(() => {
-    document.title = "Security & Privacy Architecture | Open Job";
+    document.title = "Security & Privacy Architecture | ZOBVERSE AI";
   }, []);
 
   return (
@@ -84,7 +84,7 @@ export default function SecurityPage() {
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <Image
             src="/bg-security.jpg"
-            alt="Open Job Security Quantum Vault"
+            alt="ZOBVERSE AI Security Quantum Vault"
             fill
             priority
             className="object-cover object-center opacity-35 mix-blend-screen scale-105"
@@ -103,7 +103,7 @@ export default function SecurityPage() {
           </h1>
 
           <p className="max-w-2xl mx-auto text-base sm:text-lg text-slate-400 leading-relaxed">
-            Open Job handles sensitive career data — resume content, platform credentials, salary expectations.
+            ZOBVERSE AI handles sensitive career data — resume content, platform credentials, salary expectations.
             Every component of the architecture has been designed with privacy-first, locally-sovereign principles.
           </p>
 
@@ -132,7 +132,7 @@ export default function SecurityPage() {
           </h2>
           <h3 className="text-3xl font-black text-white">8 Architectural Security Guarantees</h3>
           <p className="text-sm text-slate-400">
-            Each layer of Open Job&apos;s stack has been engineered with security as a first-class concern, not an afterthought.
+            Each layer of ZOBVERSE AI&apos;s stack has been engineered with security as a first-class concern, not an afterthought.
           </p>
         </div>
 
@@ -166,7 +166,7 @@ export default function SecurityPage() {
         <div className="max-w-4xl mx-auto px-4 text-center space-y-8">
           <h3 className="text-3xl font-black text-white">Open Source Security</h3>
           <p className="text-sm text-slate-400 max-w-2xl mx-auto leading-relaxed">
-            Open Job is built transparently. The Light-OCR vision engine, the Laya reasoning core, and the stealth dispatcher are all available for inspection.
+            ZOBVERSE AI is built transparently. The Light-OCR vision engine, the Laya reasoning core, and the stealth dispatcher are all available for inspection.
             Security-conscious candidates and organizations can audit, fork, and self-host with full control.
           </p>
 

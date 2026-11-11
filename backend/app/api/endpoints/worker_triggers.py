@@ -10,9 +10,14 @@ from sqlalchemy.future import select
 from app.core.database import get_db, AsyncSessionLocal
 from app.models.user import User
 from app.models.profile import CandidateProfile
+from app.models.preferences import CandidatePreferences
 from app.services.agent_console import agent_console
 from app.core.security import get_current_user
 from app.workers.job_discovery import run_discovery
+from app.adapters.registry import (
+    DEFAULT_JOB_SOURCES,
+    PLATFORMS_BY_ID,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -24,13 +29,54 @@ async def trigger_job_scan(
     query: Optional[str] = Query(default=None),
     skills: Optional[str] = Query(default=None, description="Target skills to discover, e.g. 'Python, FastAPI, Docker'"),
     location: str = Query(default="Remote"),
-    source: Optional[str] = Query(default=None, description="Limit discovery to LinkedIn or Jobicy"),
+    source: Optional[str] = Query(default=None, description="Legacy single-platform filter"),
+    platforms: Optional[str] = Query(default=None, description="Comma-separated selected platform ids"),
     db: AsyncSession = Depends(get_db)
 ):
     """Fetch live listings now and associate discovered jobs with the signed-in user."""
     user_id = current_user.id
-    if source and source.lower() not in {"linkedin", "jobicy"}:
-        raise HTTPException(status_code=422, detail="Source must be LinkedIn or Jobicy.")
+    if source and platforms:
+        raise HTTPException(
+            status_code=422,
+            detail="Use either the legacy source parameter or platforms, not both.",
+        )
+    if source:
+        selected_platforms = [source.strip().lower()]
+    elif platforms is not None:
+        selected_platforms = list(
+            dict.fromkeys(
+                platform.strip().lower()
+                for platform in platforms.split(",")
+                if platform.strip()
+            )
+        )
+    else:
+        preferences_result = await db.execute(
+            select(CandidatePreferences).where(
+                CandidatePreferences.user_id == user_id
+            )
+        )
+        preferences = preferences_result.scalars().first()
+        selected_platforms = (
+            preferences.job_sources
+            if preferences and isinstance(preferences.job_sources, list)
+            else DEFAULT_JOB_SOURCES
+        )
+
+    if not selected_platforms:
+        raise HTTPException(
+            status_code=422,
+            detail="Select at least one job platform before starting discovery.",
+        )
+    unknown_platforms = [
+        platform for platform in selected_platforms
+        if platform not in PLATFORMS_BY_ID
+    ]
+    if unknown_platforms:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Unknown job platform(s): {', '.join(unknown_platforms)}",
+        )
 
     profile_result = await db.execute(
         select(CandidateProfile).where(CandidateProfile.user_id == user_id)
@@ -45,13 +91,21 @@ async def trigger_job_scan(
     )
 
     skills_text = f" (CV skills: {effective_skills})" if effective_skills else ""
-    source_text = f" on {source}" if source else " on LinkedIn and Jobicy"
+    source_names = [
+        PLATFORMS_BY_ID[platform].name for platform in selected_platforms
+    ]
+    source_text = " on " + ", ".join(source_names)
     await agent_console.broadcast_log(
         user_id=user_id,
         level="DISCOVERY",
         stage="SCRAPER",
         message=f"🌐 Searching live job boards{source_text} for '{effective_query}'{skills_text} in '{location}'...",
-        details={"query": effective_query, "skills": effective_skills, "location": location, "source": source}
+        details={
+            "query": effective_query,
+            "skills": effective_skills,
+            "location": location,
+            "platforms": selected_platforms,
+        }
     )
 
     try:
@@ -60,7 +114,7 @@ async def trigger_job_scan(
             query=effective_query,
             location=location,
             requested_skills=effective_skills,
-            source=source,
+            sources=selected_platforms,
             user_id=user_id,
         )
     except Exception as exc:
@@ -78,6 +132,10 @@ async def trigger_job_scan(
         )
 
     fetched = discovery["fetched"]
+    live_platforms = [
+        platform for platform in selected_platforms
+        if PLATFORMS_BY_ID[platform].search_available
+    ]
     await agent_console.broadcast_log(
         user_id=user_id,
         level="SUCCESS" if fetched else "WARN",
@@ -86,7 +144,11 @@ async def trigger_job_scan(
             f"✅ Live search fetched {fetched} listings; "
             f"{discovery['newly_saved']} new listings saved to your account."
             if fetched
-            else "No live listings matched this search. Try another role, skill, or location."
+            else (
+                "Selected platforms are guided-only. Open their official search pages to view current jobs."
+                if not live_platforms
+                else "No live listings matched this search. Try another role, skill, or location."
+            )
         ),
         details=discovery,
     )
@@ -95,11 +157,16 @@ async def trigger_job_scan(
         "message": (
             f"Live search fetched {fetched} listings."
             if fetched
-            else "No live listings matched this search."
+            else (
+                "Selected platforms are guided-only; continue on their official search pages."
+                if not live_platforms
+                else "No live listings matched this search."
+            )
         ),
         "query": effective_query,
         "skills": effective_skills,
         "source": source,
+        "platforms": selected_platforms,
         **discovery,
     }
 
