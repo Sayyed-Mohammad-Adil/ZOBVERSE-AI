@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { BrandLoader } from "@/components/ui/BrandLoader";
+import { clearAuthSession, setAuthSession } from "@/lib/api";
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -16,24 +17,25 @@ export default function AuthGuard({ children }: AuthGuardProps) {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
+    let active = true;
 
-    if (!token) {
-      // Also ensure cookie is cleared
-      document.cookie = "oj_session=; path=/; max-age=0; SameSite=Lax";
-      router.replace(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
-    } else {
-      // Ensure cookie is in sync with localStorage token
-      const cookieExists = document.cookie
-        .split(";")
-        .some((c) => c.trim().startsWith("oj_session="));
+    queueMicrotask(() => {
+      if (!active) return;
 
-      if (!cookieExists) {
-        document.cookie = `oj_session=${token}; path=/; max-age=604800; SameSite=Lax`;
+      if (!token) {
+        clearAuthSession();
+        router.replace(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
+        return;
       }
 
+      setAuthSession(token);
       setAuthorized(true);
       setChecking(false);
-    }
+    });
+
+    return () => {
+      active = false;
+    };
   }, [pathname, router]);
 
   if (checking || !authorized) {

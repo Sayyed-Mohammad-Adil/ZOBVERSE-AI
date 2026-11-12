@@ -21,3 +21,12 @@ def test_jobs_skills_summary():
 
 def test_jobs_search_skill_wise():
     assert client.get("/api/v1/jobs/?skills=Python").status_code == 401
+
+def test_jobs_search_without_trailing_slash_does_not_redirect():
+    response = client.get(
+        "/api/v1/jobs?skills=Python",
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 401
+    assert response.headers.get("location") is None

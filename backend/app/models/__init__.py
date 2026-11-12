@@ -14,3 +14,4 @@ from app.models.interview import Interview
 from app.models.offer import Offer
 from app.models.credential import CandidateCredential
 from app.models.user_job import UserJob
+from app.models.token_usage import TokenUsage

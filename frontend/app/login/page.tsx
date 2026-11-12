@@ -16,7 +16,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { OpenCodeLogo } from "@/components/ui/OpenCodeLogo";
-import { getApiUrl } from "@/lib/api";
+import { getApiUrl, setAuthSession } from "@/lib/api";
 
 export default function LoginPage() {
   return (
@@ -62,10 +62,7 @@ function LoginForm() {
       }
 
       const data = await res.json();
-      localStorage.setItem("token", data.access_token);
-      // Set session cookies so Next.js middleware can verify auth on server-side
-      document.cookie = `oj_session=${data.access_token}; path=/; max-age=604800; SameSite=Lax`;
-      document.cookie = `access_token=${data.access_token}; path=/; max-age=604800; SameSite=Lax`;
+      setAuthSession(data.access_token);
 
       // Redirect to callbackUrl if present, else dashboard
       const params = new URLSearchParams(window.location.search);

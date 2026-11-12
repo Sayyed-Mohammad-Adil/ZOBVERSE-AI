@@ -144,6 +144,7 @@ def _candidate_job_match_score(
     return round(matched_job_skills / len(job_skills) * 100, 1)
 
 @router.get("/", response_model=List[JobResponse])
+@router.get("", response_model=List[JobResponse], include_in_schema=False)
 @router.get("/search", response_model=List[JobResponse])
 async def list_jobs(
     query: Optional[str] = Query(default=None, description="General keyword search across title, company, description, requirements, and skills"),

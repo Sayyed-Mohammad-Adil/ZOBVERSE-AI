@@ -1,22 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const PROTECTED_PREFIXES = ["/dashboard"];
-const PUBLIC_PATHS = [
-  "/",
-  "/login",
-  "/register",
-  "/features",
-  "/how-it-works",
-  "/about",
-  "/info",
-  "/security",
-  "/pricing",
-  "/resources",
-  "/contact",
-  "/product",
-];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const isProtected = PROTECTED_PREFIXES.some((prefix) =>
@@ -27,7 +13,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Check for auth token in cookies (set by login) or Authorization header
+  // Check for auth cookies set by login.
   const tokenCookie = request.cookies.get("access_token")?.value;
 
   // Also check localStorage-compatible Bearer token in cookie (set by client)

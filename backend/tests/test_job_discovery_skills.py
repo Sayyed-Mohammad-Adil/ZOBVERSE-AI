@@ -65,7 +65,7 @@ async def test_ollama_fit_evaluation_parses_structured_assessment(monkeypatch):
 
     result = await engine.evaluate_job_fit(
         SimpleNamespace(
-            id=1, current_role="Backend Engineer", total_experience_years=5,
+            id=1, user_id=42, current_role="Backend Engineer", total_experience_years=5,
             skills="Python", summary="Backend APIs",
         ),
         SimpleNamespace(
@@ -78,6 +78,11 @@ async def test_ollama_fit_evaluation_parses_structured_assessment(monkeypatch):
     assert result["status"] == "evaluated"
     assert result["fit_score"] == 91
     assert result["recommendation"] == "strong_fit"
+    engine.ollama.generate.assert_awaited_once()
+    assert engine.ollama.generate.await_args.kwargs == {
+        "user_id": 42,
+        "operation": "job_fit_review",
+    }
 
 
 @pytest.mark.asyncio

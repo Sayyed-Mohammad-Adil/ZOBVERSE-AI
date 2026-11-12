@@ -1,4 +1,21 @@
 const API_PATH = "/api/v1";
+export const AUTH_SESSION_MAX_AGE_SECONDS = 8 * 24 * 60 * 60;
+
+export function setAuthSession(token: string): void {
+  if (typeof window === "undefined") return;
+
+  localStorage.setItem("token", token);
+  document.cookie = `oj_session=${token}; path=/; max-age=${AUTH_SESSION_MAX_AGE_SECONDS}; SameSite=Lax`;
+  document.cookie = `access_token=${token}; path=/; max-age=${AUTH_SESSION_MAX_AGE_SECONDS}; SameSite=Lax`;
+}
+
+export function clearAuthSession(): void {
+  if (typeof window === "undefined") return;
+
+  localStorage.removeItem("token");
+  document.cookie = "oj_session=; path=/; max-age=0; SameSite=Lax";
+  document.cookie = "access_token=; path=/; max-age=0; SameSite=Lax";
+}
 
 function normalizeApiBase(url: string): string {
   const base = url.replace(/\/+$/, "");
@@ -48,10 +65,9 @@ export async function fetchWithAuth(endpoint: string, options: RequestInit = {})
   }
 
   if (response.status === 401) {
-    // Unauthorized, trigger logout
     if (typeof window !== "undefined") {
-      localStorage.removeItem("token");
-      window.location.href = "/login";
+      clearAuthSession();
+      window.location.assign("/login");
     }
   }
 

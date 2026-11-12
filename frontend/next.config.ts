@@ -1,6 +1,10 @@
+import { resolve } from "node:path";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  turbopack: {
+    root: resolve(process.cwd(), ".."),
+  },
   // Allow local network IP access without HMR websocket warnings in dev mode
   allowedDevOrigins: ["0.0.0.0", "localhost", "127.0.0.1"],
   async rewrites() {

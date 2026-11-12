@@ -50,7 +50,8 @@ The backend exposes a versioned REST API under `/api/v1`.
   - `GET /{user_id}`, `POST /{user_id}`, `PUT /{id}`, `DELETE /{id}`: CRUD for saved screening questions.
   - `POST /classify`: Laya classification and confidence estimation for screening questions.
 - **Analytics (`/api/v1/analytics`)**:
-  - `GET /{user_id}`: Pipeline metrics, source breakdown, and skill gap intelligence.
+  - `GET /{user_id}`: Pipeline metrics, source breakdown, skill gap intelligence, and per-user Ollama prompt/completion token totals.
+  - Token counts are recorded from Ollama response usage fields for job-fit reviews and cover-letter generation after migration `4a7c1d9e2f63`; earlier usage is not backfilled.
 - **Settings & Privacy (`/api/v1/settings`)**:
   - `GET /ai/test-ollama`, `GET /ai/test-laya`: Connectivity health tests.
   - `GET /job-sources`: Platform search and application capabilities.

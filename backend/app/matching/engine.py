@@ -45,7 +45,11 @@ Description: {(job.description or "Not provided")[:3000]}
 Requirements: {(job.requirements or "Not provided")[:1500]}
 """
         try:
-            response = await self.ollama.generate(prompt)
+            response = await self.ollama.generate(
+                prompt,
+                user_id=getattr(profile, "user_id", None),
+                operation="job_fit_review",
+            )
             match = re.search(r"\{.*\}", response, re.DOTALL)
             if not match:
                 raise ValueError("Ollama response did not contain a JSON object.")

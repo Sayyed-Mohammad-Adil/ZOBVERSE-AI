@@ -27,7 +27,11 @@ class ApplicationPreparer:
         """
         
         try:
-            return await self.llm.generate(prompt)
+            return await self.llm.generate(
+                prompt,
+                user_id=getattr(profile, "user_id", None),
+                operation="cover_letter",
+            )
         except Exception as e:
             logger.error(f"Failed to generate cover letter: {e}")
             return "Failed to generate cover letter."

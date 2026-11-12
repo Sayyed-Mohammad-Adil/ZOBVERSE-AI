@@ -18,7 +18,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { OpenCodeLogo } from "@/components/ui/OpenCodeLogo";
-import { getApiUrl } from "@/lib/api";
+import { getApiUrl, setAuthSession } from "@/lib/api";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -90,9 +90,7 @@ export default function RegisterPage() {
 
         if (loginRes.ok) {
           const loginData = await loginRes.json();
-          localStorage.setItem("token", loginData.access_token);
-          document.cookie = `oj_session=${loginData.access_token}; path=/; max-age=604800; SameSite=Lax`;
-          document.cookie = `access_token=${loginData.access_token}; path=/; max-age=604800; SameSite=Lax`;
+          setAuthSession(loginData.access_token);
           // Direct entrance into dashboard
           window.location.href = "/dashboard";
           return;

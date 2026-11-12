@@ -122,7 +122,11 @@ export default function SearchPage() {
   const loadSkillsSummary = async () => {
     try {
       const res = await fetchWithAuth("/jobs/skills/summary");
-      if (!res.ok) throw new Error("Could not load job skill data.");
+      if (!res.ok) {
+        throw new Error(
+          `Could not load job skill data (HTTP ${res.status} ${res.statusText}).`,
+        );
+      }
       const data: unknown = await res.json();
       if (Array.isArray(data)) {
         setPopularSkills(data);
@@ -215,7 +219,7 @@ export default function SearchPage() {
       if (minSalary && parseFloat(minSalary) > 0) params.append("min_salary", minSalary);
       if (minMatchScore) params.append("min_match_score", minMatchScore);
 
-      const res = await fetchWithAuth(`/jobs/?${params.toString()}`);
+      const res = await fetchWithAuth(`/jobs?${params.toString()}`);
       if (res.ok) {
         const data = await res.json();
         setJobs(data);

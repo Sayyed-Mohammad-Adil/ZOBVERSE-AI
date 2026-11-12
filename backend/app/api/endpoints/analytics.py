@@ -13,6 +13,7 @@ from app.models.interview import Interview
 from app.models.offer import Offer
 from app.models.user import User
 from app.models.user_job import UserJob
+from app.models.token_usage import TokenUsage
 from app.adapters.registry import JOB_PLATFORM_SOURCES
 from app.core.security import get_current_user
 from typing import Any, Dict, List
@@ -41,6 +42,15 @@ async def get_dashboard_analytics(
         )
     )
     total_jobs = jobs_count_res.scalar() or 0
+
+    token_usage_res = await db.execute(
+        select(
+            func.coalesce(func.sum(TokenUsage.prompt_tokens), 0),
+            func.coalesce(func.sum(TokenUsage.completion_tokens), 0),
+            func.count(TokenUsage.id),
+        ).where(TokenUsage.user_id == user_id)
+    )
+    prompt_tokens, completion_tokens, token_requests = token_usage_res.one()
 
     # 2. User applications breakdown
     apps_res = await db.execute(select(Application, Job).outerjoin(Job, Application.job_id == Job.id).where(Application.user_id == user_id))
@@ -146,6 +156,13 @@ async def get_dashboard_analytics(
 
     return {
         "total_jobs_discovered": total_jobs,
+        "ai_token_usage": {
+            "provider": "Ollama",
+            "prompt_tokens": int(prompt_tokens),
+            "completion_tokens": int(completion_tokens),
+            "total_tokens": int(prompt_tokens + completion_tokens),
+            "requests": int(token_requests),
+        },
         "applications": {
             "total": total_apps,
             "ready": ready_count,

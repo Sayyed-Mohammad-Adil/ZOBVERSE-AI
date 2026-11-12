@@ -40,6 +40,13 @@ interface DashboardAnalytics {
   application_velocity?: { date: string; count: number }[];
   profile_completion?: number;
   skill_gap_analysis?: { candidate_skills?: string[] };
+  ai_token_usage?: {
+    provider?: string;
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    total_tokens?: number;
+    requests?: number;
+  };
 }
 
 interface DashboardPreferences {
@@ -323,6 +330,33 @@ export default function DashboardPage() {
             </div>
             <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
               <Award className="w-6 h-6" />
+            </div>
+          </div>
+        </Card>
+
+        {/* AI Tokens Used */}
+        <Card className="glass-card hover:border-cyan-400/50 group">
+          <div className="flex justify-between items-start">
+            <div className="space-y-1">
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                AI Tokens Used
+              </div>
+              <div className="text-3xl font-black text-slate-900 tracking-tight">
+                {loading
+                  ? "..."
+                  : (analytics?.ai_token_usage?.total_tokens ?? 0).toLocaleString()}
+              </div>
+              <div className="text-[11px] font-semibold text-cyan-700 pt-1">
+                {loading
+                  ? "Loading usage..."
+                  : `${(analytics?.ai_token_usage?.prompt_tokens ?? 0).toLocaleString()} input · ${(analytics?.ai_token_usage?.completion_tokens ?? 0).toLocaleString()} output`}
+              </div>
+              <div className="text-[10px] text-slate-400">
+                Ollama · {analytics?.ai_token_usage?.requests ?? 0} requests tracked
+              </div>
+            </div>
+            <div className="w-12 h-12 rounded-2xl bg-cyan-50 text-cyan-600 flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
+              <Sparkles className="w-6 h-6" />
             </div>
           </div>
         </Card>

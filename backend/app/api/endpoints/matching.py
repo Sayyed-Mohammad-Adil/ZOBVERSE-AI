@@ -2,18 +2,24 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.core.database import get_db
+from app.core.security import get_current_user
 from app.models.job import Job
 from app.models.profile import CandidateProfile
 from app.models.preferences import CandidatePreferences
 from app.schemas.matching import MatchRequest, MatchResult
 from app.matching.engine import MatchingEngine
 from app.adapters.registry import ALL_SOURCE_NAMES
+from app.models.user import User
 
 router = APIRouter()
 engine = MatchingEngine()
 
 @router.post("/evaluate", response_model=MatchResult)
-async def evaluate_match(req: MatchRequest, db: AsyncSession = Depends(get_db)):
+async def evaluate_match(
+    req: MatchRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
     # 1. Fetch Job
     job_res = await db.execute(select(Job).where(Job.id == req.job_id))
     job = job_res.scalars().first()
@@ -25,7 +31,9 @@ async def evaluate_match(req: MatchRequest, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Job not found")
 
     # 2. Fetch Profile & Preferences
-    prof_res = await db.execute(select(CandidateProfile).where(CandidateProfile.user_id == req.user_id))
+    prof_res = await db.execute(
+        select(CandidateProfile).where(CandidateProfile.user_id == current_user.id)
+    )
     profile = prof_res.scalars().first()
     if not profile:
         raise HTTPException(
@@ -33,7 +41,11 @@ async def evaluate_match(req: MatchRequest, db: AsyncSession = Depends(get_db)):
             detail="Create a candidate profile before evaluating job matches.",
         )
 
-    pref_res = await db.execute(select(CandidatePreferences).where(CandidatePreferences.user_id == req.user_id))
+    pref_res = await db.execute(
+        select(CandidatePreferences).where(
+            CandidatePreferences.user_id == current_user.id
+        )
+    )
     preferences = pref_res.scalars().first()
 
     # 3. Calculate real match using deterministic rules + Laya decision

@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { OpenCodeLogo } from "@/components/ui/OpenCodeLogo";
 import { useEffect, useRef, useState } from "react";
-import { fetchWithAuth } from "@/lib/api";
+import { clearAuthSession, fetchWithAuth } from "@/lib/api";
 import gsap from "gsap";
 
 interface NavGroup {
@@ -95,9 +95,7 @@ export default function Sidebar() {
   }, [pathname]);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    // Clear session cookie for middleware auth
-    document.cookie = "oj_session=; path=/; max-age=0; SameSite=Lax";
+    clearAuthSession();
     router.push("/login");
   };
 
