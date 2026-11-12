@@ -1,5 +1,8 @@
+import asyncio
+
 import pytest
 
+from app.adapters.http import get_with_retries
 from app.adapters.jobicy import JobicyAdapter
 from app.adapters.linkedin import LinkedInAdapter
 from app.adapters.manual_platforms import IndeedAdapter, NaukriAdapter
@@ -37,6 +40,42 @@ class MockClient:
     async def get(self, *args, **kwargs):
         self.request_args = (args, kwargs)
         return self.response
+
+
+class SequenceClient(MockClient):
+    def __init__(self, responses):
+        super().__init__(None)
+        self.responses = iter(responses)
+        self.request_count = 0
+
+    async def get(self, *args, **kwargs):
+        self.request_count += 1
+        return next(self.responses)
+
+
+@pytest.mark.asyncio
+async def test_http_retry_retries_server_errors():
+    first = MockResponse()
+    first.status_code = 503
+    second = MockResponse()
+    client = SequenceClient([first, second])
+
+    response = await get_with_retries(client, "https://example.com", provider="TEST")
+
+    assert response is second
+    assert client.request_count == 2
+
+
+@pytest.mark.asyncio
+async def test_http_retry_does_not_retry_rate_limits():
+    response = MockResponse()
+    response.status_code = 429
+    client = SequenceClient([response])
+
+    result = await get_with_retries(client, "https://example.com", provider="TEST")
+
+    assert result is response
+    assert client.request_count == 1
 
 
 @pytest.mark.asyncio
@@ -179,6 +218,22 @@ def test_platform_job_normalizes_common_listing_fields():
     assert job.posted_at is None
 
 
+def test_platform_job_accepts_common_provider_id_and_posted_date_names():
+    job = PlatformJob(
+        provider_id="board_123",
+        title="Backend Engineer",
+        company="Example",
+        url="https://example.com/jobs/123",
+        source="INDEED",
+        posted_date="2025-01-02T00:00:00",
+    )
+
+    assert job.external_job_id == "board_123"
+    assert job.provider_id == "board_123"
+    assert job.posted_at.isoformat() == "2025-01-02T00:00:00"
+    assert job.posted_date == job.posted_at
+
+
 @pytest.mark.asyncio
 async def test_guided_only_platforms_return_warnings_not_live_search_errors():
     result = await run_discovery(db=None, sources=["indeed"])
@@ -203,3 +258,52 @@ async def test_guided_only_platform_returns_an_integration_warning():
     assert result["providers"][0]["source"] == "INDEED"
     assert result["errors"] == []
     assert "authorized Indeed search API" in result["warnings"][0]
+
+
+@pytest.mark.asyncio
+async def test_live_platforms_search_concurrently_and_fail_independently(monkeypatch):
+    both_started = asyncio.Event()
+    started = set()
+
+    class FakeAdapter:
+        def __init__(self, source_name, fail=False):
+            self.source_name = source_name
+            self.fail = fail
+
+        async def search_jobs(self, *_args, **_kwargs):
+            started.add(self.source_name)
+            if len(started) == 2:
+                both_started.set()
+            await asyncio.wait_for(both_started.wait(), timeout=1)
+            if self.fail:
+                raise RuntimeError("provider unavailable")
+            return []
+
+    class FakeDatabase:
+        async def rollback(self):
+            return None
+
+        async def commit(self):
+            return None
+
+    adapters = {
+        "linkedin": FakeAdapter("LINKEDIN", fail=True),
+        "jobicy": FakeAdapter("JOBICY"),
+    }
+    monkeypatch.setattr(
+        "app.workers.job_discovery.create_adapter",
+        lambda platform_id: adapters[platform_id],
+    )
+
+    result = await run_discovery(
+        db=FakeDatabase(),
+        sources=["linkedin", "jobicy"],
+    )
+
+    assert started == {"LINKEDIN", "JOBICY"}
+    assert [provider["status"] for provider in result["providers"]] == [
+        "error",
+        "no_results",
+    ]
+    assert result["fetched"] == 0
+    assert result["errors"] == ["LINKEDIN: provider unavailable"]

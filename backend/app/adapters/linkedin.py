@@ -5,6 +5,7 @@ from typing import List, Dict, Any
 import httpx
 from bs4 import BeautifulSoup
 from app.adapters.base import JobSourceAdapter
+from app.adapters.http import get_with_retries
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,12 @@ class LinkedInAdapter(JobSourceAdapter):
         
         try:
             async with httpx.AsyncClient(headers=self.headers, timeout=15.0) as client:
-                response = await client.get(url, params=params)
+                response = await get_with_retries(
+                    client,
+                    url,
+                    params=params,
+                    provider=self.source_name,
+                )
                 response.raise_for_status()
                 if response.status_code == 200:
                     soup = BeautifulSoup(response.text, "html.parser")

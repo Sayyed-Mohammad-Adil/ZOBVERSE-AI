@@ -32,10 +32,19 @@ anti-bot evasion.
   adapter factories.
 - `JobSourceAdapter` is the shared async interface.
 - `LinkedInAdapter` and `JobicyAdapter` implement live search.
+- Selected live sources are fetched concurrently; a failure from one source is
+  reported independently and does not prevent other sources from returning
+  results. Per-scan provider states distinguish `available`, `no_results`,
+  `error`, and `guided_only`.
+- Live HTTP adapters make at most one retry for transient network failures or
+  server errors. Authentication, access-denied, and rate-limit responses are
+  not retried.
 - Guided-only platform adapters report that no search API is configured and
   direct candidates to the official site without fabricating listings.
 - `PlatformJob` normalizes provider ID, title, company, location, salary,
-  experience, description, URL, source, work mode, and posted date.
+  experience, description, URL, source, work mode, and posted date. It accepts
+  `provider_id`/`posted_date` as input aliases while retaining the existing
+  database-compatible `external_job_id`/`posted_at` fields.
 - Discovery canonicalizes listing URLs and removes known tracking parameters
   before checking for an existing provider ID or URL. Application preparation
   also checks for an existing `(user, job)` record.

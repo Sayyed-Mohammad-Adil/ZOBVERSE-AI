@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from typing import Any
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
@@ -61,36 +62,49 @@ async def run_discovery(
     selected_sources = sources or ([source] if source else DEFAULT_JOB_SOURCES)
 
     provider_results: list[dict[str, Any]] = []
+    searchable_platforms = []
     for platform_id in selected_sources:
         platform = PLATFORMS_BY_ID[platform_id]
         provider_result: dict[str, Any] = {
             "source": platform.source_name,
-            "status": "live" if platform.search_available else "guided_only",
+            "status": "no_results" if platform.search_available else "guided_only",
             "fetched": 0,
             "newly_saved": 0,
             "errors": [],
             "warnings": [],
         }
+        provider_results.append(provider_result)
         if not platform.search_available:
             provider_result["warnings"] = [platform.notice]
-            provider_results.append(provider_result)
             continue
 
         adapter = create_adapter(platform_id)
         if adapter is None:
+            provider_result["status"] = "error"
             provider_result["errors"] = [
                 f"No search adapter is registered for {platform.name}."
             ]
-            provider_results.append(provider_result)
             continue
 
+        searchable_platforms.append((platform, adapter, provider_result))
+
+    search_results = await asyncio.gather(
+        *(
+            adapter.search_jobs(query, location, skills=requested_skills)
+            for _, adapter, _ in searchable_platforms
+        ),
+        return_exceptions=True,
+    )
+
+    for (platform, adapter, provider_result), search_result in zip(
+        searchable_platforms, search_results
+    ):
         try:
-            jobs = await adapter.search_jobs(
-                query,
-                location,
-                skills=requested_skills,
-            )
+            if isinstance(search_result, BaseException):
+                raise search_result
+            jobs = search_result
             provider_result["fetched"] = len(jobs)
+            provider_result["status"] = "available" if jobs else "no_results"
             newly_saved = 0
             for listing in jobs:
                 normalized = PlatformJob.model_validate(
@@ -167,9 +181,8 @@ async def run_discovery(
         except Exception as e:
             logger.error(f"Error discovering jobs from {platform.source_name}: {e}")
             await db.rollback()
+            provider_result["status"] = "error"
             provider_result["errors"] = [str(e)]
-        provider_results.append(provider_result)
-
     return {
         "providers": provider_results,
         "fetched": sum(int(result["fetched"]) for result in provider_results),

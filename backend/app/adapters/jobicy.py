@@ -2,6 +2,7 @@ import logging
 from typing import List, Dict, Any
 import httpx
 from app.adapters.base import JobSourceAdapter
+from app.adapters.http import get_with_retries
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +31,12 @@ class JobicyAdapter(JobSourceAdapter):
             url = f"https://jobicy.com/api/v2/remote-jobs?count=10&tag={tag}"
 
             async with httpx.AsyncClient(headers=self.headers, timeout=12.0) as client:
-                res = await client.get(url)
+                res = await get_with_retries(
+                    client,
+                    url,
+                    provider=self.source_name,
+                )
+                res.raise_for_status()
                 if res.status_code == 200:
                     data = res.json()
                     for item in data.get("jobs", []):
