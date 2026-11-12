@@ -101,18 +101,18 @@ export default function ConsolePage() {
           </div>
 
           <Link
-            href="/dashboard/settings#linkedin"
+            href="/dashboard/guide"
             className="px-3 py-1.5 rounded-xl border flex items-center gap-2 text-xs transition-all hover:border-blue-400 hover:shadow-xs group cursor-pointer bg-white"
           >
             <Link2 className="w-3.5 h-3.5 text-blue-600 group-hover:scale-110 transition-transform" />
-            <span className="text-slate-600 font-medium">LinkedIn:</span>
+            <span className="text-slate-600 font-medium">Platforms:</span>
             {linkedinStatus?.connected ? (
               <Badge variant="success" size="sm" dot pulse>
-                CONNECTED
+                LINKEDIN CONNECTED
               </Badge>
             ) : (
               <Badge variant="warning" size="sm">
-                CONNECT SESSION
+                LINK ACCOUNTS
               </Badge>
             )}
           </Link>

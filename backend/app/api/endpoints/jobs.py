@@ -15,7 +15,7 @@ from app.models.user_job import UserJob
 from app.schemas.job import JobResponse, SkillCount
 from app.ai.laya.decision import LayaDecisionService
 from app.core.security import get_current_user
-from app.adapters.registry import JOB_PLATFORM_SOURCES
+from app.adapters.registry import ALL_SOURCE_NAMES, JOB_PLATFORM_SOURCES
 
 logger = logging.getLogger(__name__)
 
@@ -383,7 +383,7 @@ async def get_job(
     job = result.scalars().first()
     if (
         not job
-        or job.source.lower() not in {"linkedin", "jobicy", "csv_import"}
+        or job.source.lower() not in ALL_SOURCE_NAMES
         or job.external_job_id.lower().startswith("dummy_")
     ):
         raise HTTPException(status_code=404, detail="Job not found")

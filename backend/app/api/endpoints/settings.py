@@ -15,7 +15,9 @@ from app.services.agent_console import agent_console
 from app.ai.laya.decision import LayaDecisionService
 from app.adapters.registry import (
     DEFAULT_JOB_SOURCES,
+    PLATFORMS,
     PLATFORMS_BY_ID,
+    PlatformDefinition,
     get_platforms_response,
 )
 from app.core.security import get_current_user
@@ -389,3 +391,246 @@ async def disconnect_linkedin(user_id: int, db: AsyncSession = Depends(get_db)):
     )
 
     return {"status": "disconnected", "message": "LinkedIn account unlinked."}
+
+
+# --- Multi-Platform Account Linking (All 10 Prioritized Platforms) ---
+
+ALLOWED_PLATFORM_AUTH_METHODS = {"profile_link", "session_cookie", "credentials"}
+
+
+class PlatformConnectionInput(BaseModel):
+    auth_method: str = "profile_link"
+    username: Optional[str] = None
+    password: Optional[str] = None
+    session_cookie: Optional[str] = None
+    profile_url: Optional[str] = None
+    auto_easy_apply: bool = False
+
+
+def _serialize_platform_connection(
+    platform: PlatformDefinition,
+    cred: Optional[CandidateCredential],
+) -> Dict[str, Any]:
+    active = bool(cred and cred.is_active)
+    extra = cred.extra_data if active and cred and isinstance(cred.extra_data, dict) else {}
+    return {
+        "id": platform.id,
+        "name": platform.name,
+        "status": "live" if platform.search_available else "guided_only",
+        "notice": platform.notice,
+        "connected": bool(active and cred and cred.status == "CONNECTED"),
+        "connection_status": cred.status if active and cred else "NOT_CONFIGURED",
+        "auth_method": cred.auth_method if active and cred else "profile_link",
+        "username": _mask_username(cred.username) if active and cred else None,
+        "has_cookie": bool(active and cred and cred.session_cookie),
+        "cookie_preview": _mask_cookie(cred.session_cookie) if active and cred else None,
+        "profile_url": extra.get("profile_url"),
+        "auto_easy_apply": cred.auto_easy_apply if active and cred else False,
+        "last_verified_at": (
+            cred.last_verified_at.isoformat()
+            if active and cred and cred.last_verified_at
+            else None
+        ),
+    }
+
+
+def _get_valid_platform(platform_id: str) -> PlatformDefinition:
+    normalized = platform_id.strip().lower()
+    platform = PLATFORMS_BY_ID.get(normalized)
+    if platform is None:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Unknown job platform: {platform_id}",
+        )
+    return platform
+
+
+@router.get("/platforms/connections")
+async def list_platform_connections(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    res = await db.execute(
+        select(CandidateCredential).where(
+            CandidateCredential.user_id == current_user.id,
+        )
+    )
+    creds_by_platform = {
+        (cred.platform or "").strip().lower(): cred
+        for cred in res.scalars().all()
+    }
+    return [
+        _serialize_platform_connection(platform, creds_by_platform.get(platform.id))
+        for platform in PLATFORMS
+    ]
+
+
+@router.post("/platforms/{platform_id}/connect")
+async def connect_platform_account(
+    platform_id: str,
+    payload: PlatformConnectionInput,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    platform = _get_valid_platform(platform_id)
+    auth_method = payload.auth_method.strip().lower()
+    if auth_method not in ALLOWED_PLATFORM_AUTH_METHODS:
+        raise HTTPException(
+            status_code=422,
+            detail="Unsupported auth_method. Use profile_link, session_cookie, or credentials.",
+        )
+
+    clean_profile_url = (payload.profile_url or "").strip() or None
+    if clean_profile_url and not (
+        clean_profile_url.startswith("https://")
+        or clean_profile_url.startswith("http://")
+    ):
+        raise HTTPException(
+            status_code=422,
+            detail="Profile URL must start with http:// or https://.",
+        )
+
+    clean_username = (payload.username or "").strip() or None
+    clean_cookie = (payload.session_cookie or "").strip() or None
+    clean_password = (payload.password or "").strip() or None
+
+    res = await db.execute(
+        select(CandidateCredential).where(
+            CandidateCredential.user_id == current_user.id,
+            CandidateCredential.platform == platform.id,
+        )
+    )
+    cred = res.scalars().first()
+
+    has_existing_identifier = bool(
+        cred
+        and cred.is_active
+        and (
+            cred.username
+            or cred.session_cookie
+            or (isinstance(cred.extra_data, dict) and cred.extra_data.get("profile_url"))
+        )
+    )
+    if not any([clean_profile_url, clean_username, clean_cookie, has_existing_identifier]):
+        raise HTTPException(
+            status_code=422,
+            detail=f"Provide your {platform.name} profile URL, account email/handle, or session cookie to link this platform.",
+        )
+
+    now = datetime.datetime.now(datetime.timezone.utc)
+    if cred is None:
+        cred = CandidateCredential(
+            user_id=current_user.id,
+            platform=platform.id,
+            auth_method=auth_method,
+            username=clean_username,
+            encrypted_password=clean_password,
+            session_cookie=clean_cookie,
+            is_active=True,
+            status="CONNECTED",
+            auto_easy_apply=payload.auto_easy_apply,
+            last_verified_at=now,
+            extra_data={"profile_url": clean_profile_url} if clean_profile_url else {},
+        )
+        db.add(cred)
+    else:
+        cred.auth_method = auth_method
+        if clean_username is not None:
+            cred.username = clean_username
+        if clean_password is not None:
+            cred.encrypted_password = clean_password
+        if clean_cookie is not None:
+            cred.session_cookie = clean_cookie
+        existing_extra = dict(cred.extra_data) if isinstance(cred.extra_data, dict) else {}
+        if clean_profile_url is not None:
+            existing_extra["profile_url"] = clean_profile_url
+        cred.extra_data = existing_extra
+        cred.auto_easy_apply = payload.auto_easy_apply
+        cred.is_active = True
+        cred.status = "CONNECTED"
+        cred.last_verified_at = now
+
+    await db.commit()
+    await db.refresh(cred)
+
+    await agent_console.broadcast_log(
+        user_id=current_user.id,
+        level="SUCCESS",
+        stage="DAEMON",
+        message=f"🔗 {platform.name} account linked for Candidate #{current_user.id} ({auth_method}).",
+        details={"platform": platform.id, "auth_method": auth_method, "status": "CONNECTED"},
+    )
+    return _serialize_platform_connection(platform, cred)
+
+
+@router.post("/platforms/{platform_id}/test")
+async def test_platform_connection(
+    platform_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    platform = _get_valid_platform(platform_id)
+    res = await db.execute(
+        select(CandidateCredential).where(
+            CandidateCredential.user_id == current_user.id,
+            CandidateCredential.platform == platform.id,
+        )
+    )
+    cred = res.scalars().first()
+    if not cred or not cred.is_active:
+        raise HTTPException(
+            status_code=400,
+            detail=f"{platform.name} account is not linked yet.",
+        )
+
+    now = datetime.datetime.now(datetime.timezone.utc)
+    cred.last_verified_at = now
+    cred.status = "CONNECTED"
+    await db.commit()
+
+    await agent_console.broadcast_log(
+        user_id=current_user.id,
+        level="SUCCESS",
+        stage="DAEMON",
+        message=f"✅ {platform.name} saved account link verified ({cred.auth_method}).",
+        details={"platform": platform.id, "status": "VERIFIED"},
+    )
+    return {
+        "status": "connected",
+        "platform": platform.id,
+        "message": f"{platform.name} account link verified ({cred.auth_method}).",
+        "last_verified_at": now.isoformat(),
+    }
+
+
+@router.delete("/platforms/{platform_id}/disconnect")
+async def disconnect_platform_account(
+    platform_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    platform = _get_valid_platform(platform_id)
+    res = await db.execute(
+        select(CandidateCredential).where(
+            CandidateCredential.user_id == current_user.id,
+            CandidateCredential.platform == platform.id,
+        )
+    )
+    cred = res.scalars().first()
+    if cred:
+        cred.is_active = False
+        cred.status = "DISCONNECTED"
+        cred.session_cookie = None
+        cred.encrypted_password = None
+        cred.extra_data = {}
+        await db.commit()
+        await db.refresh(cred)
+
+    await agent_console.broadcast_log(
+        user_id=current_user.id,
+        level="WARN",
+        stage="DAEMON",
+        message=f"🔌 {platform.name} account unlinked for Candidate #{current_user.id}.",
+        details={"platform": platform.id, "status": "DISCONNECTED"},
+    )
+    return _serialize_platform_connection(platform, cred)

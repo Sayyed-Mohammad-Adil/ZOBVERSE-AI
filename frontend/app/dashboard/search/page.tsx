@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -871,6 +872,93 @@ export default function SearchPage() {
             </Button>
           </div>
         </div>
+
+        {availablePlatforms.length > 0 && (
+          <div className="pt-3 mt-3 border-t border-slate-100 space-y-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                Discovery Platforms ({selectedPlatforms.length}/{availablePlatforms.length} selected)
+              </span>
+              <div className="flex items-center gap-3">
+                <span className="text-[11px] text-slate-400">
+                  Live feeds run in-app; guided boards open on their official search pages.
+                </span>
+                <Link
+                  href="/dashboard/guide"
+                  className="text-[11px] font-bold text-blue-700 hover:underline whitespace-nowrap"
+                >
+                  Link Accounts &amp; Guide &rarr;
+                </Link>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {availablePlatforms.map((platform) => {
+                const isSelected = selectedPlatforms.includes(platform.id);
+                return (
+                  <button
+                    key={platform.id}
+                    type="button"
+                    disabled={savingPlatforms}
+                    onClick={() => void togglePlatform(platform.id)}
+                    title={platform.notice}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold border transition-all cursor-pointer disabled:opacity-60 ${
+                      isSelected
+                        ? "bg-blue-50 text-blue-800 border-blue-300 shadow-2xs"
+                        : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"
+                    }`}
+                  >
+                    {isSelected && <Check className="w-3 h-3 text-blue-600 stroke-[3]" />}
+                    <span>{platform.name}</span>
+                    <span
+                      className={`rounded px-1 py-0.5 text-[9px] uppercase font-bold ${
+                        platform.status === "live"
+                          ? "bg-emerald-50 text-emerald-700"
+                          : "bg-amber-50 text-amber-700"
+                      }`}
+                    >
+                      {platform.status === "live" ? "Live" : "Guided"}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            {availablePlatforms.some(
+              (platform) =>
+                selectedPlatforms.includes(platform.id) &&
+                platform.status === "guided_only",
+            ) && (
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pt-1">
+                <span className="text-[11px] font-semibold text-slate-500">
+                  Official guided search:
+                </span>
+                {availablePlatforms
+                  .filter(
+                    (platform) =>
+                      selectedPlatforms.includes(platform.id) &&
+                      platform.status === "guided_only",
+                  )
+                  .map((platform) => {
+                    const searchUrl = OFFICIAL_SEARCH_URLS[platform.id];
+                    return searchUrl ? (
+                      <a
+                        key={platform.id}
+                        href={searchUrl(
+                          query.trim() || profileRole || selectedSkills.join(" "),
+                          "Remote",
+                        )}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-700 hover:underline"
+                      >
+                        <span>{platform.name}</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    ) : null;
+                  })}
+              </div>
+            )}
+          </div>
+        )}
       </Card>
 
       {/* Main Grid: Listings & Filter Summary */}

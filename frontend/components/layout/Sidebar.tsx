@@ -19,6 +19,7 @@ import {
   Terminal,
   Activity,
   Info,
+  BookOpen,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -166,6 +167,7 @@ export default function Sidebar() {
           icon: Terminal,
         },
         { name: "Live Job Search", href: "/dashboard/search", icon: Search },
+        { name: "Platform Guide", href: "/dashboard/guide", icon: BookOpen },
         {
           name: "Review Queue",
           href: "/dashboard/review",

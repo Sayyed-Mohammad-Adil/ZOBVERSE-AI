@@ -10,6 +10,7 @@ from app.models.user_job import UserJob
 from app.adapters.registry import (
     DEFAULT_JOB_SOURCES,
     PLATFORMS_BY_ID,
+    PLATFORMS_BY_SOURCE,
     create_adapter,
 )
 from app.schemas.platform_job import PlatformJob
@@ -59,12 +60,30 @@ async def run_discovery(
 ) -> dict[str, object]:
     logger.info(f"Running job discovery for {query} in {location}")
 
-    selected_sources = sources or ([source] if source else DEFAULT_JOB_SOURCES)
+    selected_sources = list(
+        dict.fromkeys(
+            item.strip().lower()
+            for item in (sources or ([source] if source else DEFAULT_JOB_SOURCES))
+            if isinstance(item, str) and item.strip()
+        )
+    )
 
     provider_results: list[dict[str, Any]] = []
     searchable_platforms = []
     for platform_id in selected_sources:
-        platform = PLATFORMS_BY_ID[platform_id]
+        platform = PLATFORMS_BY_ID.get(platform_id) or PLATFORMS_BY_SOURCE.get(platform_id)
+        if platform is None:
+            provider_results.append(
+                {
+                    "source": platform_id.upper(),
+                    "status": "error",
+                    "fetched": 0,
+                    "newly_saved": 0,
+                    "errors": [f"Unknown job platform: {platform_id!r}."],
+                    "warnings": [],
+                }
+            )
+            continue
         provider_result: dict[str, Any] = {
             "source": platform.source_name,
             "status": "no_results" if platform.search_available else "guided_only",
@@ -78,7 +97,7 @@ async def run_discovery(
             provider_result["warnings"] = [platform.notice]
             continue
 
-        adapter = create_adapter(platform_id)
+        adapter = create_adapter(platform.id)
         if adapter is None:
             provider_result["status"] = "error"
             provider_result["errors"] = [

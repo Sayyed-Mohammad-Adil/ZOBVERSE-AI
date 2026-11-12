@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -32,6 +33,7 @@ import {
 export default function SettingsPage() {
   const [aiConfig, setAiConfig] = useState<any>(null);
   const [sources, setSources] = useState<any[]>([]);
+  const [platformConnections, setPlatformConnections] = useState<Record<string, { connected: boolean; auth_method?: string; username?: string | null }>>({});
   const [testingOllama, setTestingOllama] = useState(false);
   const [testingLaya, setTestingLaya] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
@@ -82,8 +84,19 @@ export default function SettingsPage() {
         );
       }
 
-      const sourcesRes = await fetchWithAuth("/settings/job-sources");
+      const [sourcesRes, connectionsRes] = await Promise.all([
+        fetchWithAuth("/settings/job-sources"),
+        fetchWithAuth("/settings/platforms/connections"),
+      ]);
       if (sourcesRes.ok) setSources(await sourcesRes.json());
+      if (connectionsRes.ok) {
+        const connList: Array<{ id: string; connected: boolean; auth_method?: string; username?: string | null }> = await connectionsRes.json();
+        const mapped: Record<string, { connected: boolean; auth_method?: string; username?: string | null }> = {};
+        for (const item of connList) {
+          mapped[item.id] = item;
+        }
+        setPlatformConnections(mapped);
+      }
     } catch (e) {
       console.error(e);
     }
@@ -399,54 +412,77 @@ export default function SettingsPage() {
       {/* Configured Sources */}
       <Card className="glass-card">
         <CardHeader>
-          <div>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Layers className="w-5 h-5 text-blue-600" />
-              <span>Multi-Source Ingestion Connectors</span>
-            </CardTitle>
-            <CardDescription>
-              Live feeds and guided official-site workflows. CAPTCHA and access controls are never bypassed.
-            </CardDescription>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Layers className="w-5 h-5 text-blue-600" />
+                <span>Multi-Source Ingestion Connectors</span>
+              </CardTitle>
+              <CardDescription>
+                Live feeds and guided official-site workflows. CAPTCHA and access controls are never bypassed.
+              </CardDescription>
+            </div>
+            <Link
+              href="/dashboard/guide"
+              className="text-xs font-bold text-blue-700 hover:underline shrink-0"
+            >
+              Link Platform Accounts &amp; Guide &rarr;
+            </Link>
           </div>
         </CardHeader>
 
         <div className="space-y-3 pt-1">
-          {sources.map((source) => (
-            <div
-              key={source.id}
-              className="p-4 rounded-2xl bg-white border border-slate-200/80 hover:border-slate-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs"
-            >
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <h4 className="font-extrabold text-sm text-slate-900">
-                    {source.name}
-                  </h4>
-                  <Badge
-                    variant={source.status === "live" ? "success" : "warning"}
-                    size="sm"
-                  >
-                    {source.status === "live" ? "Live search" : "Guided only"}
-                  </Badge>
+          {sources.map((source) => {
+            const conn = platformConnections[source.id];
+            return (
+              <div
+                key={source.id}
+                className="p-4 rounded-2xl bg-white border border-slate-200/80 hover:border-slate-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs"
+              >
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h4 className="font-extrabold text-sm text-slate-900">
+                      {source.name}
+                    </h4>
+                    <Badge
+                      variant={source.status === "live" ? "success" : "warning"}
+                      size="sm"
+                    >
+                      {source.status === "live" ? "Live search" : "Guided only"}
+                    </Badge>
+                    <Badge
+                      variant={conn?.connected ? "primary" : "secondary"}
+                      size="sm"
+                      dot={Boolean(conn?.connected)}
+                    >
+                      {conn?.connected ? "Account Linked" : "Not Linked"}
+                    </Badge>
+                  </div>
+                  <div className="flex gap-2 flex-wrap text-[11px] pt-1">
+                    <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-medium">
+                      {source.capabilities?.search ? "Live discovery" : "Official-site search"}
+                    </span>
+                    <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-medium">
+                      Application preparation
+                    </span>
+                    <span className="bg-amber-50 text-amber-800 px-2 py-0.5 rounded-md font-semibold border border-amber-200">
+                      Candidate submits on platform
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 max-w-2xl">{source.notice}</p>
                 </div>
-                <div className="flex gap-2 flex-wrap text-[11px] pt-1">
-                  <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-medium">
-                    {source.capabilities?.search ? "Live discovery" : "Official-site search"}
-                  </span>
-                  <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-medium">
-                    Application preparation
-                  </span>
-                  <span className="bg-amber-50 text-amber-800 px-2 py-0.5 rounded-md font-semibold border border-amber-200">
-                    Candidate submits on platform
-                  </span>
-                </div>
-                <p className="text-[11px] text-slate-500 max-w-2xl">{source.notice}</p>
-              </div>
 
-              <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200 self-start sm:self-center">
-                {source.status === "live" ? "Search enabled" : "Partner access required"}
-              </span>
-            </div>
-          ))}
+                <div className="flex items-center gap-2 self-start sm:self-center shrink-0">
+                  <Link
+                    href={`/dashboard/guide?platform=${source.id}`}
+                    className="text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-xl border border-blue-200 transition-colors"
+                  >
+                    {conn?.connected ? "Manage Link →" : "Link Account →"}
+                  </Link>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </Card>
 

@@ -1,12 +1,38 @@
 import asyncio
 
+from types import SimpleNamespace
+from unittest.mock import AsyncMock
+
 import pytest
+from fastapi import HTTPException
 
 from app.adapters.http import get_with_retries
 from app.adapters.jobicy import JobicyAdapter
 from app.adapters.linkedin import LinkedInAdapter
-from app.adapters.manual_platforms import IndeedAdapter, NaukriAdapter
-from app.adapters.registry import DEFAULT_JOB_SOURCES, get_platforms_response
+from app.adapters.manual_platforms import (
+    FounditAdapter,
+    GlassdoorAdapter,
+    IndeedAdapter,
+    InternshalaAdapter,
+    NaukriAdapter,
+    ShineAdapter,
+    WellfoundAdapter,
+    ZipRecruiterAdapter,
+)
+from app.adapters.registry import (
+    DEFAULT_JOB_SOURCES,
+    PLATFORMS,
+    create_adapter,
+    get_platforms_response,
+)
+from app.api.endpoints.jobs import get_job
+from app.api.endpoints.settings import (
+    PlatformConnectionInput,
+    connect_platform_account,
+    disconnect_platform_account,
+    list_platform_connections,
+    test_platform_connection as verify_platform_connection,
+)
 from app.schemas.platform_job import PlatformJob
 from app.workers.job_discovery import canonicalize_job_url, run_discovery
 
@@ -307,3 +333,217 @@ async def test_live_platforms_search_concurrently_and_fail_independently(monkeyp
     ]
     assert result["fetched"] == 0
     assert result["errors"] == ["LINKEDIN: provider unavailable"]
+
+
+def test_all_ten_prioritized_platforms_are_registered_in_priority_order():
+    expected_ids = [
+        "linkedin",
+        "indeed",
+        "naukri",
+        "internshala",
+        "foundit",
+        "glassdoor",
+        "wellfound",
+        "shine",
+        "ziprecruiter",
+        "jobicy",
+    ]
+    assert [platform.id for platform in PLATFORMS] == expected_ids
+
+    catalog = {platform["id"]: platform for platform in get_platforms_response()}
+    assert list(catalog.keys()) == expected_ids
+    assert catalog["linkedin"]["status"] == "live"
+    assert catalog["jobicy"]["status"] == "live"
+    for platform_id in expected_ids:
+        assert create_adapter(platform_id) is not None
+        if platform_id not in {"linkedin", "jobicy"}:
+            assert catalog[platform_id]["status"] == "guided_only"
+            assert catalog[platform_id]["capabilities"]["application_preparation"] is True
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("platform_id", "adapter_cls", "platform_label"),
+    [
+        ("indeed", IndeedAdapter, "Indeed"),
+        ("naukri", NaukriAdapter, "Naukri"),
+        ("internshala", InternshalaAdapter, "Internshala"),
+        ("foundit", FounditAdapter, "Foundit"),
+        ("glassdoor", GlassdoorAdapter, "Glassdoor"),
+        ("wellfound", WellfoundAdapter, "Wellfound"),
+        ("shine", ShineAdapter, "Shine"),
+        ("ziprecruiter", ZipRecruiterAdapter, "ZipRecruiter"),
+    ],
+)
+async def test_all_guided_platforms_report_warnings_and_external_preparation(
+    platform_id,
+    adapter_cls,
+    platform_label,
+):
+    adapter = adapter_cls()
+    with pytest.raises(RuntimeError, match=f"{platform_label} does not expose a configured authorized"):
+        await adapter.search_jobs("Backend Engineer", "Remote")
+
+    prep = await adapter.prepare_application("ext_1", {"full_name": "Candidate"})
+    assert prep["status"] == "requires_manual"
+    assert prep["method"] == "EXTERNAL"
+
+    result = await run_discovery(db=None, sources=[platform_id.upper()])
+    assert result["fetched"] == 0
+    assert result["errors"] == []
+    assert result["providers"][0]["status"] == "guided_only"
+    assert result["warnings"]
+
+
+@pytest.mark.asyncio
+async def test_run_discovery_reports_unknown_platform_without_crashing():
+    result = await run_discovery(db=None, sources=["unknown_board", "indeed"])
+
+    assert result["fetched"] == 0
+    assert [provider["status"] for provider in result["providers"]] == [
+        "error",
+        "guided_only",
+    ]
+    assert result["errors"] == ["UNKNOWN_BOARD: Unknown job platform: 'unknown_board'."]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "source_name",
+    [
+        "LINKEDIN",
+        "INDEED",
+        "NAUKRI",
+        "INTERNSHALA",
+        "FOUNDIT",
+        "GLASSDOOR",
+        "WELLFOUND",
+        "SHINE",
+        "ZIPRECRUITER",
+        "JOBICY",
+        "CSV_IMPORT",
+    ],
+)
+async def test_get_job_accepts_all_supported_platform_sources(source_name):
+    job = SimpleNamespace(
+        id=10,
+        title="Backend Engineer",
+        company="Example",
+        description="Build APIs",
+        requirements=None,
+        skills="Python",
+        source=source_name,
+        external_job_id="ext_10",
+    )
+
+    class FakeResult:
+        def scalars(self):
+            return self
+
+        def first(self):
+            return job
+
+    class FakeDatabase:
+        async def execute(self, _stmt):
+            return FakeResult()
+
+    returned = await get_job(
+        job_id=10,
+        current_user=SimpleNamespace(id=1),
+        db=FakeDatabase(),
+    )
+    assert returned.source == source_name
+    assert returned.skills_list == ["Python"]
+
+
+@pytest.mark.asyncio
+async def test_multi_platform_account_linking_lifecycle(monkeypatch):
+    from app.api.endpoints import settings as settings_endpoint
+
+    monkeypatch.setattr(settings_endpoint.agent_console, "broadcast_log", AsyncMock())
+    stored_creds = []
+
+    class FakeResult:
+        def __init__(self, items):
+            self._items = items
+
+        def scalars(self):
+            return self
+
+        def all(self):
+            return list(self._items)
+
+        def first(self):
+            return self._items[0] if self._items else None
+
+    class FakeDatabase:
+        def __init__(self):
+            self.last_stmt = None
+
+        async def execute(self, stmt):
+            self.last_stmt = stmt
+            text = str(stmt)
+            if "candidate_credentials.platform =" in text:
+                for cred in stored_creds:
+                    if getattr(cred, "_matched", False):
+                        return FakeResult([cred])
+                return FakeResult([])
+            return FakeResult(stored_creds)
+
+        def add(self, obj):
+            stored_creds.append(obj)
+
+        async def commit(self):
+            return None
+
+        async def refresh(self, _obj):
+            return None
+
+    user = SimpleNamespace(id=7)
+    db = FakeDatabase()
+
+    initial = await list_platform_connections(current_user=user, db=db)
+    assert [item["id"] for item in initial] == [platform.id for platform in PLATFORMS]
+    assert all(item["connected"] is False for item in initial)
+
+    with pytest.raises(HTTPException) as unknown_exc:
+        await connect_platform_account(
+            "unknown_board",
+            PlatformConnectionInput(profile_url="https://example.com/u/test"),
+            current_user=user,
+            db=db,
+        )
+    assert unknown_exc.value.status_code == 422
+
+    with pytest.raises(HTTPException) as empty_exc:
+        await connect_platform_account(
+            "naukri",
+            PlatformConnectionInput(auth_method="profile_link"),
+            current_user=user,
+            db=db,
+        )
+    assert empty_exc.value.status_code == 422
+
+    linked = await connect_platform_account(
+        "naukri",
+        PlatformConnectionInput(
+            auth_method="profile_link",
+            profile_url="https://www.naukri.com/mnjuser/profile",
+            username="candidate@example.com",
+        ),
+        current_user=user,
+        db=db,
+    )
+    assert linked["id"] == "naukri"
+    assert linked["connected"] is True
+    assert linked["profile_url"] == "https://www.naukri.com/mnjuser/profile"
+    assert linked["username"] == "c***e@example.com"
+
+    stored_creds[0]._matched = True
+    verified = await verify_platform_connection("naukri", current_user=user, db=db)
+    assert verified["status"] == "connected"
+    assert verified["platform"] == "naukri"
+
+    disconnected = await disconnect_platform_account("naukri", current_user=user, db=db)
+    assert disconnected["connected"] is False
+    assert disconnected["connection_status"] == "NOT_CONFIGURED"

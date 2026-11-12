@@ -35,18 +35,24 @@ async def trigger_job_scan(
 ):
     """Fetch live listings now and associate discovered jobs with the signed-in user."""
     user_id = current_user.id
-    if source and platforms:
+    query_str = query if isinstance(query, str) else None
+    skills_str = skills if isinstance(skills, str) else None
+    location_str = location if isinstance(location, str) and location.strip() else "Remote"
+    source_str = source if isinstance(source, str) else None
+    platforms_str = platforms if isinstance(platforms, str) else None
+
+    if source_str and platforms_str:
         raise HTTPException(
             status_code=422,
             detail="Use either the legacy source parameter or platforms, not both.",
         )
-    if source:
-        selected_platforms = [source.strip().lower()]
-    elif platforms is not None:
+    if source_str:
+        selected_platforms = [source_str.strip().lower()]
+    elif platforms_str is not None:
         selected_platforms = list(
             dict.fromkeys(
                 platform.strip().lower()
-                for platform in platforms.split(",")
+                for platform in platforms_str.split(",")
                 if platform.strip()
             )
         )
@@ -57,10 +63,17 @@ async def trigger_job_scan(
             )
         )
         preferences = preferences_result.scalars().first()
-        selected_platforms = (
+        raw_sources = (
             preferences.job_sources
             if preferences and isinstance(preferences.job_sources, list)
             else DEFAULT_JOB_SOURCES
+        )
+        selected_platforms = list(
+            dict.fromkeys(
+                platform.strip().lower()
+                for platform in raw_sources
+                if isinstance(platform, str) and platform.strip()
+            )
         )
 
     if not selected_platforms:
@@ -82,11 +95,11 @@ async def trigger_job_scan(
         select(CandidateProfile).where(CandidateProfile.user_id == user_id)
     )
     profile = profile_result.scalars().first()
-    effective_skills = skills.strip() if skills and skills.strip() else (
+    effective_skills = skills_str.strip() if skills_str and skills_str.strip() else (
         profile.skills if profile and profile.skills else None
     )
     effective_query = (
-        query.strip() if query and query.strip()
+        query_str.strip() if query_str and query_str.strip()
         else (profile.current_role if profile and profile.current_role else "Software Engineer")
     )
 
@@ -99,11 +112,11 @@ async def trigger_job_scan(
         user_id=user_id,
         level="DISCOVERY",
         stage="SCRAPER",
-        message=f"🌐 Searching live job boards{source_text} for '{effective_query}'{skills_text} in '{location}'...",
+        message=f"🌐 Searching live job boards{source_text} for '{effective_query}'{skills_text} in '{location_str}'...",
         details={
             "query": effective_query,
             "skills": effective_skills,
-            "location": location,
+            "location": location_str,
             "platforms": selected_platforms,
         }
     )
@@ -112,7 +125,7 @@ async def trigger_job_scan(
         discovery = await run_discovery(
             db,
             query=effective_query,
-            location=location,
+            location=location_str,
             requested_skills=effective_skills,
             sources=selected_platforms,
             user_id=user_id,
@@ -165,7 +178,7 @@ async def trigger_job_scan(
         ),
         "query": effective_query,
         "skills": effective_skills,
-        "source": source,
+        "source": source_str,
         "platforms": selected_platforms,
         **discovery,
     }
